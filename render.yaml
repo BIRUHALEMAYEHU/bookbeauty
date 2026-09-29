@@ -17,7 +17,7 @@ services:
     runtime: node
     region: oregon
     plan: free
-    buildCommand: npm ci && npx prisma generate && npx prisma migrate deploy
+    buildCommand: npm install && npx prisma generate && npx prisma migrate deploy
     startCommand: node --loader tsx/esm server/index.ts
     healthCheckPath: /api/health
     envVars:
@@ -50,7 +50,7 @@ services:
   - type: web
     name: book-app
     runtime: static
-    buildCommand: npm ci && npx prisma generate && npx vite build
+    buildCommand: npm install && npx prisma generate && npx vite build
     staticPublishPath: dist
     pullRequestPreviewsEnabled: false
     headers:
@@ -69,7 +69,7 @@ services:
   - type: web
     name: book-public
     runtime: static
-    buildCommand: npm ci && npx prisma generate && npx vite build --config public-site/vite.config.ts
+    buildCommand: npm install && npx prisma generate && npx vite build --config public-site/vite.config.ts
     staticPublishPath: public-site/dist
     pullRequestPreviewsEnabled: false
     headers:
@@ -88,7 +88,7 @@ services:
   - type: web
     name: book-platform
     runtime: static
-    buildCommand: npm ci && npx prisma generate && npx vite build --config platform-admin/vite.config.ts
+    buildCommand: npm install && npx prisma generate && npx vite build --config platform-admin/vite.config.ts
     staticPublishPath: platform-admin/dist
     pullRequestPreviewsEnabled: false
     headers:
