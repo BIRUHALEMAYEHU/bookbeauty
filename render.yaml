@@ -1,4 +1,4 @@
-﻿# Render Blueprint — Book SaaS
+# Render Blueprint — Book SaaS
 # Docs: https://render.com/docs/blueprint-spec
 #
 # Services deployed:
@@ -50,7 +50,6 @@ services:
   - type: web
     name: book-app
     runtime: static
-    region: oregon
     plan: free
     buildCommand: npm ci && npx prisma generate && npx vite build
     staticPublishPath: dist
@@ -71,7 +70,6 @@ services:
   - type: web
     name: book-public
     runtime: static
-    region: oregon
     plan: free
     buildCommand: npm ci && npx prisma generate && npx vite build --config public-site/vite.config.ts
     staticPublishPath: public-site/dist
@@ -92,7 +90,6 @@ services:
   - type: web
     name: book-platform
     runtime: static
-    region: oregon
     plan: free
     buildCommand: npm ci && npx prisma generate && npx vite build --config platform-admin/vite.config.ts
     staticPublishPath: platform-admin/dist
