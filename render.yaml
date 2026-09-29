@@ -1,0 +1,110 @@
+﻿# Render Blueprint — Book SaaS
+# Docs: https://render.com/docs/blueprint-spec
+#
+# Services deployed:
+#   1. book-api          — Express + Prisma API  (web service, Node)
+#   2. book-app          — Tenant dashboard       (static site, Vite)
+#   3. book-public       — Public booking site    (static site, Vite)
+#   4. book-platform     — Platform admin panel   (static site, Vite)
+#
+# Environment variables marked `sync: false` must be filled in the Render
+# dashboard after first deploy (they contain secrets).
+
+services:
+  # --- 1. API Server ---
+  - type: web
+    name: book-api
+    runtime: node
+    region: oregon
+    plan: free
+    buildCommand: npm ci && npx prisma generate && npx prisma migrate deploy
+    startCommand: node --loader tsx/esm server/index.ts
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3001
+      - key: DATABASE_URL
+        sync: false
+      - key: DIRECT_URL
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: PLATFORM_JWT_SECRET
+        generateValue: true
+      - key: FRONTEND_URL
+        sync: false
+      - key: PUBLIC_SITE_URL
+        sync: false
+      - key: PLATFORM_ADMIN_URL
+        sync: false
+      - key: CORS_ORIGINS
+        value: ""
+      - key: RESEND_API_KEY
+        sync: false
+      - key: EMAIL_FROM
+        sync: false
+
+  # --- 2. Tenant Dashboard ---
+  - type: web
+    name: book-app
+    runtime: static
+    region: oregon
+    plan: free
+    buildCommand: npm ci && npx prisma generate && npx vite build
+    staticPublishPath: dist
+    pullRequestPreviewsEnabled: false
+    headers:
+      - path: /*
+        name: Cache-Control
+        value: no-store
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_API_URL
+        sync: false
+
+  # --- 3. Public Booking Site ---
+  - type: web
+    name: book-public
+    runtime: static
+    region: oregon
+    plan: free
+    buildCommand: npm ci && npx prisma generate && npx vite build --config public-site/vite.config.ts
+    staticPublishPath: public-site/dist
+    pullRequestPreviewsEnabled: false
+    headers:
+      - path: /*
+        name: Cache-Control
+        value: no-store
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_API_URL
+        sync: false
+
+  # --- 4. Platform Admin Panel ---
+  - type: web
+    name: book-platform
+    runtime: static
+    region: oregon
+    plan: free
+    buildCommand: npm ci && npx prisma generate && npx vite build --config platform-admin/vite.config.ts
+    staticPublishPath: platform-admin/dist
+    pullRequestPreviewsEnabled: false
+    headers:
+      - path: /*
+        name: Cache-Control
+        value: no-store
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_API_URL
+        sync: false

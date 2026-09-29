@@ -1,0 +1,222 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id                String   @id @default(uuid())
+  email             String   @unique
+  name              String?
+  passwordHash      String
+  verificationToken String?
+  isVerified        Boolean  @default(false)
+  activeBusinessId  String?
+  activeBusiness    Business? @relation("UserActiveBusiness", fields: [activeBusinessId], references: [id], onDelete: SetNull)
+  ownedBusinesses   Business[] @relation("BusinessOwner")
+  memberships       BusinessMember[]
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+model Business {
+  id           String   @id @default(uuid())
+  name         String
+  slug         String   @unique
+  category     String   @default("salon")
+  status       String   @default("ACTIVE") // ACTIVE | SUSPENDED
+  plan         String   @default("FREE") // FREE | BUSINESS | PRO
+  about        String?
+  phone        String?
+  address      String?
+  /// JSON map: { "mon":{"open":"09:00","close":"18:00"}, ... } or null = not set
+  hoursJson    String?
+  ownerId      String
+  owner        User     @relation("BusinessOwner", fields: [ownerId], references: [id])
+  members      BusinessMember[]
+  subscription Subscription?
+  services     Service[]
+  customers    Customer[]
+  appointments Appointment[]
+  staffProfiles  StaffProfile[]
+  activeForUsers User[] @relation("UserActiveBusiness")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([status])
+}
+
+model BusinessMember {
+  id         String   @id @default(uuid())
+  businessId String
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role       String   @default("OWNER") // OWNER | MANAGER | STAFF
+  status     String   @default("ACTIVE")
+  staffProfile StaffProfile?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([businessId, userId])
+  @@index([userId])
+}
+
+model Subscription {
+  id             String    @id @default(uuid())
+  businessId     String    @unique
+  business       Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  plan           String    @default("FREE")
+  status         String    @default("INACTIVE") // INACTIVE | ACTIVE | PAST_DUE | CANCELED
+  seats          Int       @default(1)
+  renewBlocked   Boolean   @default(false)
+  currentPeriodEnd DateTime?
+  provider       String    @default("NONE")
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+}
+
+model PlatformUser {
+  id           String    @id @default(uuid())
+  email        String    @unique
+  name         String?
+  passwordHash String
+  role         String    @default("SUPPORT") // SUPPORT | BILLING | OWNER
+  mfaSecret    String?
+  mfaEnabled   Boolean   @default(false)
+  status       String    @default("ACTIVE")
+  lastLoginAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  auditLogs    PlatformAuditLog[]
+}
+
+model PlatformAuditLog {
+  id          String        @id @default(uuid())
+  staffId     String?
+  staff       PlatformUser? @relation(fields: [staffId], references: [id], onDelete: SetNull)
+  action      String
+  businessId  String?
+  targetType  String?
+  targetId    String?
+  beforeJson  String?
+  afterJson   String?
+  ip          String?
+  createdAt   DateTime      @default(now())
+
+  @@index([businessId, createdAt])
+  @@index([staffId, createdAt])
+}
+
+/// Catalog service. priceSantim = ETB * 100 (e.g. 300 ETB => 30000).
+model Service {
+  id              String   @id @default(uuid())
+  businessId      String
+  business        Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  name            String
+  description     String?
+  durationMinutes Int      @default(60)
+  priceSantim     Int      @default(0)
+  active          Boolean  @default(true)
+  sortOrder       Int      @default(0)
+  appointments    Appointment[]
+  staffServices   StaffService[]
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([businessId, active])
+}
+
+/// Per-business CRM contact (created on first booking).
+model Customer {
+  id           String   @id @default(uuid())
+  businessId   String
+  business     Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  name         String
+  phone        String
+  email        String?
+  notes        String?
+  bookingCount Int      @default(0)
+  totalSpentSantim Int  @default(0)
+  lastVisitAt  DateTime?
+  appointments Appointment[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([businessId, phone])
+  @@index([businessId, lastVisitAt])
+}
+
+model Appointment {
+  id          String   @id @default(uuid())
+  businessId  String
+  business    Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  customerId  String
+  customer    Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  serviceId   String?
+  service        Service? @relation(fields: [serviceId], references: [id], onDelete: SetNull)
+  staffProfileId String?
+  staffProfile   StaffProfile? @relation(fields: [staffProfileId], references: [id], onDelete: SetNull)
+  serviceName    String
+  priceSantim Int      @default(0)
+  durationMinutes Int  @default(60)
+  startsAt    DateTime
+  endsAt      DateTime
+  status      String   @default("CONFIRMED") // CONFIRMED | CANCELLED | COMPLETED | NO_SHOW
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([businessId, startsAt])
+  @@index([customerId, startsAt])
+  @@index([staffProfileId, startsAt])
+  @@index([status, startsAt])
+}
+
+/// Staff profile — optionally linked to a BusinessMember.
+model StaffProfile {
+  id            String   @id @default(uuid())
+  businessId    String
+  business      Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  memberId      String?  @unique
+  member        BusinessMember? @relation(fields: [memberId], references: [id], onDelete: SetNull)
+  displayName   String
+  bio           String?
+  bookable      Boolean  @default(true)
+  sortOrder     Int      @default(0)
+  staffServices StaffService[]
+  schedules     StaffSchedule[]
+  appointments  Appointment[]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([businessId, bookable])
+}
+
+/// Join table: staff ↔ service.
+model StaffService {
+  id             String       @id @default(uuid())
+  staffProfileId String
+  staffProfile   StaffProfile @relation(fields: [staffProfileId], references: [id], onDelete: Cascade)
+  serviceId      String
+  service        Service      @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  @@unique([staffProfileId, serviceId])
+}
+
+/// Weekly schedule slot for a staff member.
+model StaffSchedule {
+  id             String       @id @default(uuid())
+  staffProfileId String
+  staffProfile   StaffProfile @relation(fields: [staffProfileId], references: [id], onDelete: Cascade)
+  dayOfWeek      Int          // 0=Sunday … 6=Saturday
+  openTime       String       // "09:00"
+  closeTime      String       // "18:00"
+  isOff          Boolean      @default(false)
+
+  @@unique([staffProfileId, dayOfWeek])
+}
