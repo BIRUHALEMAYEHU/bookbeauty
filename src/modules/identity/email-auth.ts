@@ -3,6 +3,7 @@ import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/db/client";
 import { authIdentities, users } from "@/db/schema";
+import { consumeRateLimit, RATE_LIMITS } from "@/modules/abuse/rate-limit";
 import { hashPassword, verifyPassword } from "./password";
 import { createSession } from "./session";
 
@@ -24,7 +25,15 @@ export const loginSchema = z.object({
 
 export type AuthResult =
   | { ok: true }
-  | { ok: false; error: "invalid_input" | "email_taken" | "invalid_credentials" | "suspended" };
+  | {
+      ok: false;
+      error:
+        | "invalid_input"
+        | "email_taken"
+        | "invalid_credentials"
+        | "suspended"
+        | "rate_limited";
+    };
 
 export async function signupWithEmail(
   input: z.infer<typeof signupSchema>,
@@ -32,6 +41,9 @@ export async function signupWithEmail(
 ): Promise<AuthResult> {
   const parsed = signupSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: "invalid_input" };
+
+  const limited = await consumeRateLimit(RATE_LIMITS.signupIp(meta.ipAddress ?? ""));
+  if (!limited.ok) return { ok: false, error: "rate_limited" };
 
   const { displayName, email, password } = parsed.data;
   const passwordHash = await hashPassword(password);
@@ -66,6 +78,12 @@ export async function loginWithEmail(
   if (!parsed.success) return { ok: false, error: "invalid_credentials" };
 
   const { email, password } = parsed.data;
+
+  const ipLimit = await consumeRateLimit(RATE_LIMITS.loginIp(meta.ipAddress ?? ""));
+  if (!ipLimit.ok) return { ok: false, error: "rate_limited" };
+  const emailLimit = await consumeRateLimit(RATE_LIMITS.loginEmail(email));
+  if (!emailLimit.ok) return { ok: false, error: "rate_limited" };
+
   const [user] = await db
     .select()
     .from(users)
