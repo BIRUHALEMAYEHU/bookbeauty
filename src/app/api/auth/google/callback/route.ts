@@ -21,5 +21,5 @@ export async function GET(request: Request) {
     return NextResponse.redirect(new URL(`/login?error=${result.error}`, env.APP_URL));
   }
 
-  return NextResponse.redirect(new URL("/account", env.APP_URL));
+  return NextResponse.redirect(new URL("/onboarding", env.APP_URL));
 }

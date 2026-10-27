@@ -34,7 +34,7 @@ export async function signupAction(
   );
 
   if (!result.ok) return { error: result.error };
-  redirect("/account");
+  redirect("/onboarding");
 }
 
 export async function loginAction(
@@ -50,7 +50,7 @@ export async function loginAction(
   );
 
   if (!result.ok) return { error: result.error };
-  redirect("/account");
+  redirect("/onboarding");
 }
 
 export async function logoutAction() {
@@ -66,5 +66,5 @@ export async function googleLoginAction() {
 export async function telegramLoginAction(payload: TelegramAuthPayload): Promise<FormState> {
   const result = await loginWithTelegram(payload, await requestMeta());
   if (!result.ok) return { error: result.error };
-  redirect("/account");
+  redirect("/onboarding");
 }
