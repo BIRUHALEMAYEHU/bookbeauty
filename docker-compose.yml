@@ -1,0 +1,20 @@
+services:
+  db:
+    image: postgres:18
+    environment:
+      POSTGRES_USER: book
+      POSTGRES_PASSWORD: book
+      POSTGRES_DB: book
+    ports:
+      - "5432:5432"
+    volumes:
+      - db-data:/var/lib/postgresql
+      - ./db/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U book -d book"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
+volumes:
+  db-data:
