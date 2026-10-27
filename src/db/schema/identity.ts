@@ -91,5 +91,32 @@ export const sessions = pgTable(
   ],
 );
 
+/** Public identity of someone who serves customers. Optional for owners/receptionists. */
+export const professionalProfiles = pgTable(
+  "professional_profiles",
+  {
+    id: uuid("id").primaryKey().default(sql`uuidv7()`),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    handle: citext("handle").notNull(),
+    displayName: text("display_name").notNull(),
+    bio: text("bio"),
+    // Media table arrives in Layer 1; store the id without a foreign key for now.
+    avatarMediaId: uuid("avatar_media_id"),
+    createdAt: timestamp("created_at", { withTimezone: true, mode: "date" })
+      .notNull()
+      .default(sql`now()`),
+    updatedAt: timestamp("updated_at", { withTimezone: true, mode: "date" })
+      .notNull()
+      .default(sql`now()`),
+  },
+  (table) => [
+    uniqueIndex("professional_profiles_user_id_unique").on(table.userId),
+    uniqueIndex("professional_profiles_handle_unique").on(table.handle),
+  ],
+);
+
 export type User = typeof users.$inferSelect;
 export type Session = typeof sessions.$inferSelect;
+export type ProfessionalProfile = typeof professionalProfiles.$inferSelect;
