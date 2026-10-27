@@ -16,6 +16,7 @@ import {
 } from "@/db/schema";
 import { normalisePhone } from "@/lib/phone";
 import { normaliseSlug } from "@/lib/slug";
+import { createFreeSubscription } from "@/modules/entitlements/resolve";
 
 const categorySchema = z.enum([
   "hair",
@@ -223,7 +224,14 @@ export async function createIndependentPractice(
         locationId: location.id,
       });
 
+      // Subscription seed runs outside this tx (plans catalogue); the row is
+      // created immediately after commit below.
       return { ok: true as const, business, location, membership, profile };
+    }).then(async (result) => {
+      if (result.ok) {
+        await createFreeSubscription(result.business.id, "independent");
+      }
+      return result;
     });
   } catch (error) {
     if (!isUniqueViolation(error)) throw error;
@@ -310,6 +318,11 @@ export async function createSalon(
       });
 
       return { ok: true as const, business, location, membership };
+    }).then(async (result) => {
+      if (result.ok) {
+        await createFreeSubscription(result.business.id, "salon");
+      }
+      return result;
     });
   } catch (error) {
     if (!isUniqueViolation(error)) throw error;
