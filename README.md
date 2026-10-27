@@ -34,3 +34,9 @@ npm run db:migrate   # applies migrations to the development database
 | `npm run db:generate` | Creates a migration from schema changes in `src/db/schema` |
 | `npm run db:migrate` | Applies pending migrations |
 | `npm run db:studio` | Opens a browser view of the database |
+
+## Login (local)
+
+Email and password work with no extra setup. Open http://localhost:3000/signup.
+
+Google and Telegram buttons appear only when you fill the matching variables in `.env` (see `.env.example`). Telegram also needs an HTTPS domain registered with BotFather, so for local testing use a tunnel such as ngrok, or stick to email for now.
