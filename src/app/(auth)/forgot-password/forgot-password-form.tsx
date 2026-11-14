@@ -4,10 +4,11 @@ import Link from "next/link";
 import { useActionState } from "react";
 import { useTranslations } from "next-intl";
 import { forgotPasswordAction, type FormState } from "@/modules/identity/actions";
+import { BotCheck } from "../bot-check";
 
 const initial: FormState = {};
 
-export function ForgotPasswordForm() {
+export function ForgotPasswordForm({ botCheckSiteKey }: { botCheckSiteKey: string | null }) {
   const t = useTranslations("auth");
   const [state, action, pending] = useActionState(forgotPasswordAction, initial);
 
@@ -29,6 +30,7 @@ export function ForgotPasswordForm() {
               className="w-full rounded-md border border-neutral-300 px-3 py-2"
             />
           </label>
+          <BotCheck siteKey={botCheckSiteKey} resetSignal={state} />
           {state.error ? (
             <p className="text-sm text-red-700" role="alert">
               {t(`errors.${state.error}` as "errors.rate_limited")}

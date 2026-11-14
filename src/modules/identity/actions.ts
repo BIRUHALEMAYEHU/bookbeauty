@@ -2,6 +2,7 @@
 
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { TURNSTILE_FIELD, verifyTurnstileToken } from "@/modules/abuse/turnstile";
 import { loginWithEmail, signupWithEmail } from "./email-auth";
 import { sendVerificationEmail } from "./email-verification";
 import { requestPasswordReset, resetPassword } from "./password-reset";
@@ -18,6 +19,11 @@ async function requestMeta() {
   };
 }
 
+function passesBotCheck(formData: FormData, ipAddress: string | null) {
+  const token = formData.get(TURNSTILE_FIELD);
+  return verifyTurnstileToken(typeof token === "string" ? token : null, ipAddress);
+}
+
 export type FormState = {
   error?: string;
   sent?: boolean;
@@ -27,13 +33,18 @@ export async function signupAction(
   _prev: FormState,
   formData: FormData,
 ): Promise<FormState> {
+  const meta = await requestMeta();
+  if (!(await passesBotCheck(formData, meta.ipAddress))) {
+    return { error: "bot_check_failed" };
+  }
+
   const result = await signupWithEmail(
     {
       displayName: String(formData.get("displayName") ?? ""),
       email: String(formData.get("email") ?? ""),
       password: String(formData.get("password") ?? ""),
     },
-    await requestMeta(),
+    meta,
   );
 
   if (!result.ok) return { error: result.error };
@@ -77,6 +88,9 @@ export async function forgotPasswordAction(
   formData: FormData,
 ): Promise<FormState> {
   const meta = await requestMeta();
+  if (!(await passesBotCheck(formData, meta.ipAddress))) {
+    return { error: "bot_check_failed" };
+  }
   const result = await requestPasswordReset(String(formData.get("email") ?? ""), meta);
   if (!result.ok) return { error: result.error };
   return { sent: true };

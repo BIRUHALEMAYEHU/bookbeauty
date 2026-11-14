@@ -12,3 +12,6 @@ if (env.NODE_ENV !== "production") globalForDb.sql = sql;
 
 export const db = drizzle(sql, { schema, casing: "snake_case" });
 export type Db = typeof db;
+
+/** The database or an open transaction; lets one write join a caller's transaction. */
+export type DbExecutor = Db | Parameters<Parameters<Db["transaction"]>[0]>[0];

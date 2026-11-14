@@ -1,6 +1,6 @@
 import "server-only";
 import { and, eq, gt, isNull, or } from "drizzle-orm";
-import { db } from "@/db/client";
+import { db, type DbExecutor } from "@/db/client";
 import {
   businesses,
   entitlementOverrides,
@@ -124,10 +124,12 @@ export async function entitlement(
 export async function createFreeSubscription(
   businessId: string,
   kind: "independent" | "salon",
+  executor: DbExecutor = db,
 ): Promise<void> {
-  await ensurePlansSeeded();
+  // Seeding uses its own connection; it must not run inside the caller's transaction.
+  if (executor === db) await ensurePlansSeeded();
   const planKey = freePlanForKind(kind);
-  await db
+  await executor
     .insert(subscriptions)
     .values({
       businessId,

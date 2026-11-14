@@ -1,4 +1,5 @@
 import { getTranslations } from "next-intl/server";
+import { turnstileSiteKey } from "@/modules/abuse/turnstile";
 import { ForgotPasswordForm } from "./forgot-password-form";
 
 export default async function ForgotPasswordPage() {
@@ -10,7 +11,7 @@ export default async function ForgotPasswordPage() {
         <h1 className="text-2xl font-semibold tracking-tight">{t("forgotTitle")}</h1>
         <p className="text-sm text-neutral-600">{t("forgotSubtitle")}</p>
       </div>
-      <ForgotPasswordForm />
+      <ForgotPasswordForm botCheckSiteKey={turnstileSiteKey()} />
     </main>
   );
 }

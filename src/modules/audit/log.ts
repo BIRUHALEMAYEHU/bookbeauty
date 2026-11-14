@@ -1,6 +1,6 @@
 import "server-only";
 import { and, desc, eq } from "drizzle-orm";
-import { db } from "@/db/client";
+import { db, type DbExecutor } from "@/db/client";
 import { activityLog, type ActivityLogEntry } from "@/db/schema";
 
 export type LogActivityInput = {
@@ -17,8 +17,9 @@ export type LogActivityInput = {
 /** Append one activity log row. This is the only write path (D60). */
 export async function logActivity(
   input: LogActivityInput,
+  executor: DbExecutor = db,
 ): Promise<ActivityLogEntry> {
-  const [row] = await db
+  const [row] = await executor
     .insert(activityLog)
     .values({
       businessId: input.businessId ?? null,

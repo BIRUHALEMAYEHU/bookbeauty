@@ -1,7 +1,7 @@
 import "server-only";
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
-import { db } from "@/db/client";
+import { db, type DbExecutor } from "@/db/client";
 import {
   businesses,
   locations,
@@ -16,7 +16,9 @@ import {
 } from "@/db/schema";
 import { normalisePhone } from "@/lib/phone";
 import { normaliseSlug } from "@/lib/slug";
+import { logActivity } from "@/modules/audit/log";
 import { createFreeSubscription } from "@/modules/entitlements/resolve";
+import { ensurePlansSeeded } from "@/modules/entitlements/seed";
 
 const categorySchema = z.enum([
   "hair",
@@ -121,6 +123,20 @@ function phoneOrError(
   return { ok: true, phone };
 }
 
+async function logBusinessCreated(tx: DbExecutor, userId: string, business: Business) {
+  await logActivity(
+    {
+      businessId: business.id,
+      actorUserId: userId,
+      action: "business.created",
+      entityType: "business",
+      entityId: business.id,
+      after: { kind: business.kind, name: business.name, slug: business.slug },
+    },
+    tx,
+  );
+}
+
 /**
  * Creates an independent practice (D96): professional profile, business
  * (kind=independent, no slug), default location, and owner membership.
@@ -158,6 +174,8 @@ export async function createIndependentPractice(
     .limit(1);
   if (existingIndependent[0]) return { ok: false, error: "already_has_independent" };
 
+  await ensurePlansSeeded();
+
   try {
     return await db.transaction(async (tx) => {
       let profile = (
@@ -180,6 +198,16 @@ export async function createIndependentPractice(
           .returning();
         if (!created) return { ok: false as const, error: "invalid_input" as const };
         profile = created;
+        await logActivity(
+          {
+            actorUserId: userId,
+            action: "professional_profile.created",
+            entityType: "professional_profile",
+            entityId: created.id,
+            after: { handle: created.handle, displayName: created.displayName },
+          },
+          tx,
+        );
       }
 
       const [business] = await tx
@@ -224,14 +252,10 @@ export async function createIndependentPractice(
         locationId: location.id,
       });
 
-      // Subscription seed runs outside this tx (plans catalogue); the row is
-      // created immediately after commit below.
+      await createFreeSubscription(business.id, "independent", tx);
+      await logBusinessCreated(tx, userId, business);
+
       return { ok: true as const, business, location, membership, profile };
-    }).then(async (result) => {
-      if (result.ok) {
-        await createFreeSubscription(result.business.id, "independent");
-      }
-      return result;
     });
   } catch (error) {
     if (!isUniqueViolation(error)) throw error;
@@ -271,6 +295,8 @@ export async function createSalon(
     .where(eq(users.id, userId))
     .limit(1);
   if (!user) return { ok: false, error: "user_not_found" };
+
+  await ensurePlansSeeded();
 
   try {
     return await db.transaction(async (tx) => {
@@ -317,12 +343,10 @@ export async function createSalon(
         locationId: location.id,
       });
 
+      await createFreeSubscription(business.id, "salon", tx);
+      await logBusinessCreated(tx, userId, business);
+
       return { ok: true as const, business, location, membership };
-    }).then(async (result) => {
-      if (result.ok) {
-        await createFreeSubscription(result.business.id, "salon");
-      }
-      return result;
     });
   } catch (error) {
     if (!isUniqueViolation(error)) throw error;

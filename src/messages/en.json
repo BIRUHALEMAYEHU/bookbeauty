@@ -40,7 +40,8 @@
       "not_configured": "Telegram login is not set up yet.",
       "invalid_payload": "Telegram login could not be verified.",
       "link_invalid": "This link has expired or was already used.",
-      "invalid_password": "Use at least 8 characters, with a letter and a number."
+      "invalid_password": "Use at least 8 characters, with a letter and a number.",
+      "bot_check_failed": "We could not confirm you are a person. Wait for the check to finish, then try again."
     },
     "forgotLink": "Forgot your password?",
     "forgotTitle": "Reset your password",

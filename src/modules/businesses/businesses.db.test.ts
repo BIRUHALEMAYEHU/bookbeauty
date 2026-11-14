@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm";
 import { describe, expect, it } from "vitest";
 import { db } from "@/db/client";
-import { locations, memberships, users } from "@/db/schema";
+import { activityLog, locations, memberships, subscriptions, users } from "@/db/schema";
 import { createIndependentPractice, createSalon } from "./create";
 import { listMembershipsForUser } from "./queries";
 
@@ -189,5 +189,66 @@ describe("membership uniqueness", () => {
       })
       .returning();
     expect(again?.role).toBe("stylist");
+  });
+});
+
+describe("records of creation", () => {
+  it("logs the business and profile and starts the free plan in the same step", async () => {
+    const user = await seedUser("Logged Meron");
+    const result = await createIndependentPractice(user.id, {
+      handle: `logged-${Date.now().toString(36)}`,
+      displayName: "Logged Meron",
+      category: "lashes",
+    });
+    if (!result.ok) throw new Error("expected ok");
+
+    const entries = await db
+      .select({ action: activityLog.action, businessId: activityLog.businessId })
+      .from(activityLog)
+      .where(eq(activityLog.actorUserId, user.id));
+    expect(entries.map((e) => e.action).sort()).toEqual([
+      "business.created",
+      "professional_profile.created",
+    ]);
+    expect(entries.find((e) => e.action === "business.created")?.businessId).toBe(
+      result.business.id,
+    );
+
+    const [subscription] = await db
+      .select()
+      .from(subscriptions)
+      .where(eq(subscriptions.businessId, result.business.id));
+    expect(subscription?.planKey).toBe("individual_free");
+  });
+
+  it("logs a salon's creation with its address", async () => {
+    const user = await seedUser("Logged Owner");
+    const slug = `logged-${Date.now().toString(36)}`;
+    const result = await createSalon(user.id, { name: "Logged Salon", slug, category: "hair" });
+    if (!result.ok) throw new Error("expected ok");
+
+    const [entry] = await db
+      .select()
+      .from(activityLog)
+      .where(eq(activityLog.entityId, result.business.id));
+    expect(entry?.action).toBe("business.created");
+    expect(entry?.after).toEqual({ kind: "salon", name: "Logged Salon", slug });
+  });
+
+  it("leaves no log entry when creation fails", async () => {
+    const ownerA = await seedUser("Taken A");
+    const ownerB = await seedUser("Taken B");
+    const slug = `taken-${Date.now().toString(36)}`;
+    await createSalon(ownerA.id, { name: "First", slug, category: "hair" });
+
+    expect(await createSalon(ownerB.id, { name: "Second", slug, category: "hair" })).toEqual({
+      ok: false,
+      error: "slug_taken",
+    });
+    const entries = await db
+      .select()
+      .from(activityLog)
+      .where(eq(activityLog.actorUserId, ownerB.id));
+    expect(entries).toHaveLength(0);
   });
 });

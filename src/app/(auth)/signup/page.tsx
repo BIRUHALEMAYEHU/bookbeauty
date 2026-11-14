@@ -2,6 +2,7 @@ import { getTranslations } from "next-intl/server";
 import { SignupForm } from "./signup-form";
 import { googleEnabled, telegramEnabled } from "@/env";
 import { env } from "@/env";
+import { turnstileSiteKey } from "@/modules/abuse/turnstile";
 
 export const instant = false;
 
@@ -17,6 +18,7 @@ export default async function SignupPage() {
       <SignupForm
         googleEnabled={googleEnabled()}
         telegramBotUsername={telegramEnabled() ? env.TELEGRAM_BOT_USERNAME! : null}
+        botCheckSiteKey={turnstileSiteKey()}
       />
     </main>
   );

@@ -8,6 +8,7 @@ import {
   signupAction,
   type FormState,
 } from "@/modules/identity/actions";
+import { BotCheck } from "../bot-check";
 import { TelegramLoginButton } from "../telegram-login-button";
 
 const initial: FormState = {};
@@ -15,9 +16,11 @@ const initial: FormState = {};
 export function SignupForm({
   googleEnabled,
   telegramBotUsername,
+  botCheckSiteKey,
 }: {
   googleEnabled: boolean;
   telegramBotUsername: string | null;
+  botCheckSiteKey: string | null;
 }) {
   const t = useTranslations("auth");
   const [state, action, pending] = useActionState(signupAction, initial);
@@ -56,6 +59,7 @@ export function SignupForm({
           />
           <span className="text-xs text-neutral-500">{t("passwordHint")}</span>
         </label>
+        <BotCheck siteKey={botCheckSiteKey} resetSignal={state} />
         {state.error ? (
           <p className="text-sm text-red-700" role="alert">
             {t(`errors.${state.error}` as "errors.email_taken")}
