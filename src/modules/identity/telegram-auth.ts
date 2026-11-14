@@ -3,6 +3,7 @@ import { and, eq } from "drizzle-orm";
 import { db } from "@/db/client";
 import { authIdentities, users } from "@/db/schema";
 import { env, telegramEnabled } from "@/env";
+import { createUserWithIdentity } from "./accounts";
 import { createSession } from "./session";
 import {
   displayNameFromTelegram,
@@ -45,20 +46,10 @@ export async function loginWithTelegram(
     if (user.status !== "active") return { ok: false, error: "suspended" };
     userId = user.id;
   } else {
-    const [created] = await db
-      .insert(users)
-      .values({
-        displayName: displayNameFromTelegram(payload),
-        email: null,
-      })
-      .returning({ id: users.id });
-    if (!created) return { ok: false, error: "invalid_payload" };
-    userId = created.id;
-    await db.insert(authIdentities).values({
-      userId,
-      provider: "telegram",
-      providerUserId,
-    });
+    userId = await createUserWithIdentity(
+      { displayName: displayNameFromTelegram(payload), email: null },
+      { provider: "telegram", providerUserId },
+    );
   }
 
   await createSession(userId, meta);

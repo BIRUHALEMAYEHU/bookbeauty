@@ -1,10 +1,8 @@
 import "server-only";
-import { and, eq } from "drizzle-orm";
 import { Google, generateCodeVerifier, generateState } from "arctic";
 import { cookies } from "next/headers";
-import { db } from "@/db/client";
-import { authIdentities, users } from "@/db/schema";
 import { env, googleEnabled } from "@/env";
+import { resolveGoogleAccount, type GoogleProfile } from "./accounts";
 import { createOAuthState, verifyOAuthState } from "./oauth-state";
 import { createSession } from "./session";
 
@@ -71,68 +69,14 @@ export async function finishGoogleLogin(
     });
     if (!response.ok) return { ok: false, error: "oauth_failed" };
 
-    const profile = (await response.json()) as {
-      sub: string;
-      email?: string;
-      email_verified?: boolean;
-      name?: string;
-    };
+    const profile = (await response.json()) as GoogleProfile;
 
     if (!profile.sub) return { ok: false, error: "oauth_failed" };
 
-    const [identity] = await db
-      .select()
-      .from(authIdentities)
-      .where(
-        and(
-          eq(authIdentities.provider, "google"),
-          eq(authIdentities.providerUserId, profile.sub),
-        ),
-      )
-      .limit(1);
+    const account = await resolveGoogleAccount(profile);
+    if (!account.ok) return { ok: false, error: "oauth_failed" };
 
-    let userId: string;
-
-    if (identity) {
-      userId = identity.userId;
-    } else {
-      let linkedUserId: string | null = null;
-      if (profile.email && profile.email_verified) {
-        const [byEmail] = await db
-          .select({ id: users.id })
-          .from(users)
-          .where(eq(users.email, profile.email.toLowerCase()))
-          .limit(1);
-        linkedUserId = byEmail?.id ?? null;
-      }
-
-      if (linkedUserId) {
-        userId = linkedUserId;
-        await db.insert(authIdentities).values({
-          userId,
-          provider: "google",
-          providerUserId: profile.sub,
-        });
-      } else {
-        const [created] = await db
-          .insert(users)
-          .values({
-            displayName: profile.name?.trim() || profile.email || "Google user",
-            email: profile.email?.toLowerCase() ?? null,
-            emailVerifiedAt: profile.email_verified ? new Date() : null,
-          })
-          .returning({ id: users.id });
-        if (!created) return { ok: false, error: "oauth_failed" };
-        userId = created.id;
-        await db.insert(authIdentities).values({
-          userId,
-          provider: "google",
-          providerUserId: profile.sub,
-        });
-      }
-    }
-
-    await createSession(userId, meta);
+    await createSession(account.userId, meta);
     return { ok: true };
   } catch {
     return { ok: false, error: "oauth_failed" };

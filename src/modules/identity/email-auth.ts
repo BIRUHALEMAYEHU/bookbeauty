@@ -2,8 +2,9 @@ import "server-only";
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/db/client";
-import { authIdentities, users } from "@/db/schema";
+import { users } from "@/db/schema";
 import { consumeRateLimit, RATE_LIMITS } from "@/modules/abuse/rate-limit";
+import { createUserWithIdentity } from "./accounts";
 import { hashPassword, verifyPassword } from "./password";
 import { createSession } from "./session";
 
@@ -49,20 +50,12 @@ export async function signupWithEmail(
   const passwordHash = await hashPassword(password);
 
   try {
-    const [user] = await db
-      .insert(users)
-      .values({ displayName, email, passwordHash })
-      .returning({ id: users.id });
+    const userId = await createUserWithIdentity(
+      { displayName, email, passwordHash },
+      { provider: "email", providerUserId: email },
+    );
 
-    if (!user) return { ok: false, error: "invalid_input" };
-
-    await db.insert(authIdentities).values({
-      userId: user.id,
-      provider: "email",
-      providerUserId: email,
-    });
-
-    await createSession(user.id, meta);
+    await createSession(userId, meta);
     return { ok: true };
   } catch (error) {
     if (isUniqueViolation(error)) return { ok: false, error: "email_taken" };
