@@ -9,8 +9,8 @@ async function HomeAuthLinks() {
 
   if (user) {
     return (
-      <Link href="/account" className="text-sm underline">
-        {t("account")}
+      <Link href="/dashboard" className="text-sm underline">
+        {t("dashboard")}
       </Link>
     );
   }

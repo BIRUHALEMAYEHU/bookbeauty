@@ -1,7 +1,6 @@
 import { Suspense } from "react";
 import { getTranslations } from "next-intl/server";
 import { redirect } from "next/navigation";
-import { listMembershipsForUser } from "@/modules/businesses/queries";
 import { getSessionUser } from "@/modules/identity/session";
 import { SalonForm } from "./salon-form";
 
@@ -11,9 +10,6 @@ async function SalonBody() {
   const t = await getTranslations("onboarding");
   const user = await getSessionUser();
   if (!user) redirect("/login");
-
-  const memberships = await listMembershipsForUser(user.id);
-  if (memberships.length > 0) redirect("/account");
 
   return (
     <div className="space-y-4">

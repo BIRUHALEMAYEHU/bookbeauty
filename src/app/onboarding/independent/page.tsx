@@ -1,7 +1,8 @@
 import { Suspense } from "react";
 import { getTranslations } from "next-intl/server";
 import { redirect } from "next/navigation";
-import { listMembershipsForUser } from "@/modules/businesses/queries";
+import { getIndependentPractice } from "@/modules/businesses/queries";
+import { getProfessionalProfileByUserId } from "@/modules/identity/profiles";
 import { getSessionUser } from "@/modules/identity/session";
 import { IndependentForm } from "./independent-form";
 
@@ -12,8 +13,9 @@ async function IndependentBody() {
   const user = await getSessionUser();
   if (!user) redirect("/login");
 
-  const memberships = await listMembershipsForUser(user.id);
-  if (memberships.length > 0) redirect("/account");
+  const practice = await getIndependentPractice(user.id);
+  if (practice) redirect(`/dashboard/${practice.id}`);
+  const profile = await getProfessionalProfileByUserId(user.id);
 
   return (
     <div className="space-y-4">
@@ -23,7 +25,10 @@ async function IndependentBody() {
         </h1>
         <p className="text-sm text-neutral-600">{t("independentFormSubtitle")}</p>
       </div>
-      <IndependentForm defaultName={user.displayName} />
+      <IndependentForm
+        defaultName={profile?.displayName ?? user.displayName}
+        existingHandle={profile?.handle ?? null}
+      />
     </div>
   );
 }

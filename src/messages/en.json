@@ -9,7 +9,8 @@
     "comingSoon": "Coming soon.",
     "login": "Log in",
     "signup": "Sign up",
-    "account": "Account"
+    "account": "Account",
+    "dashboard": "Open dashboard"
   },
   "auth": {
     "loginTitle": "Log in",
@@ -80,7 +81,8 @@
       "verification_rate_limited": "You asked for several links already. Wait an hour and try again.",
       "link_invalid": "That link has expired or was already used.",
       "password_reset": "Your password is changed. You were logged out on other devices."
-    }
+    },
+    "openDashboard": "Open"
   },
   "onboarding": {
     "title": "How will you use Book?",
@@ -131,7 +133,13 @@
       "slug_reserved": "That page address cannot be used. Try another.",
       "already_has_independent": "You already have an independent practice.",
       "phone_invalid": "Enter a valid phone number, for example 0911 23 45 67."
-    }
+    },
+    "addAnotherTitle": "Add another place",
+    "addAnotherSubtitle": "Your other places stay as they are. You switch between them from the dashboard.",
+    "backToDashboard": "Back to dashboard",
+    "independentExists": "You already have your own practice.",
+    "independentOpen": "Open it",
+    "handleKept": "Your handle stays @{handle}. It is the same everywhere you work."
   },
   "emails": {
     "greeting": "Hello {name},",
@@ -150,5 +158,26 @@
       "expiry": "This link works for 1 hour and only once.",
       "notYou": "If this was not you, ignore this email. Your password stays the same."
     }
+  },
+  "roles": {
+    "owner": "Owner",
+    "branch_manager": "Branch manager",
+    "receptionist": "Receptionist",
+    "stylist": "Stylist"
+  },
+  "dashboard": {
+    "chooseTitle": "Where are you working today?",
+    "chooseSubtitle": "Pick a place. You can switch any time from the top of the page.",
+    "kindIndependent": "Your own practice",
+    "kindSalon": "Salon",
+    "switchHat": "Switch place",
+    "addHat": "Add a practice or salon",
+    "account": "Account",
+    "logout": "Log out",
+    "welcome": "Welcome, {name}",
+    "yourRole": "You are signed in here as: {role}.",
+    "bookingLink": "Your booking link",
+    "bookingLinkHint": "Put this link in your Instagram or TikTok bio. Customers book from it with just their name and phone number.",
+    "bookingLinkMissing": "This place has no public address yet."
   }
 }

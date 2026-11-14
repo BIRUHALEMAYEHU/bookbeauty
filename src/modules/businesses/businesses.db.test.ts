@@ -3,7 +3,8 @@ import { describe, expect, it } from "vitest";
 import { db } from "@/db/client";
 import { activityLog, locations, memberships, subscriptions, users } from "@/db/schema";
 import { createIndependentPractice, createSalon } from "./create";
-import { listMembershipsForUser } from "./queries";
+import { createProfessionalProfile } from "@/modules/identity/profiles";
+import { getIndependentPractice, listHats, listMembershipsForUser } from "./queries";
 
 async function seedUser(label: string) {
   const [user] = await db
@@ -250,5 +251,79 @@ describe("records of creation", () => {
       .from(activityLog)
       .where(eq(activityLog.actorUserId, ownerB.id));
     expect(entries).toHaveLength(0);
+  });
+});
+
+describe("hats", () => {
+  it("lists each place she can act in, with its public address", async () => {
+    const user = await seedUser("Two Hats");
+    const stamp = Date.now().toString(36);
+    const independent = await createIndependentPractice(user.id, {
+      handle: `hats-${stamp}`,
+      displayName: "Hats Meron",
+      category: "makeup",
+    });
+    const salon = await createSalon(user.id, {
+      name: "Hats Salon",
+      slug: `hats-salon-${stamp}`,
+      category: "hair",
+    });
+    if (!independent.ok || !salon.ok) throw new Error("setup failed");
+
+    const hats = await listHats(user.id);
+    expect(hats).toEqual([
+      {
+        businessId: independent.business.id,
+        name: "Hats Meron",
+        kind: "independent",
+        role: "owner",
+        publicPath: `/@hats-${stamp}`,
+      },
+      {
+        businessId: salon.business.id,
+        name: "Hats Salon",
+        kind: "salon",
+        role: "owner",
+        publicPath: `/hats-salon-${stamp}`,
+      },
+    ]);
+    expect((await getIndependentPractice(user.id))?.id).toBe(independent.business.id);
+  });
+
+  it("leaves out ended, invited and requested memberships", async () => {
+    const owner = await seedUser("Hat Owner");
+    const stylist = await seedUser("Hat Stylist");
+    const salon = await createSalon(owner.id, {
+      name: "Hat Salon",
+      slug: `hat-${Date.now().toString(36)}`,
+      category: "hair",
+    });
+    if (!salon.ok) throw new Error("setup failed");
+
+    for (const status of ["invited", "requested", "ended"] as const) {
+      const [row] = await db
+        .insert(memberships)
+        .values({ businessId: salon.business.id, userId: stylist.id, role: "stylist", status })
+        .returning();
+      expect(await listHats(stylist.id)).toEqual([]);
+      await db.delete(memberships).where(eq(memberships.id, row!.id));
+    }
+    expect(await getIndependentPractice(stylist.id)).toBeNull();
+  });
+
+  it("keeps a stylist's existing handle when she opens her own practice", async () => {
+    const user = await seedUser("Weekend Hana");
+    const handle = `hana-${Date.now().toString(36)}`;
+    const profile = await createProfessionalProfile(user.id, { handle, displayName: "Hana" });
+    if (!profile.ok) throw new Error("setup failed");
+
+    const result = await createIndependentPractice(user.id, {
+      handle,
+      displayName: "Hana Weekend Visits",
+      category: "hair",
+    });
+    if (!result.ok) throw new Error(`expected ok, got ${result.error}`);
+    expect(result.profile.id).toBe(profile.profile.id);
+    expect((await listHats(user.id))[0]?.publicPath).toBe(`/@${handle}`);
   });
 });

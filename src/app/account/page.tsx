@@ -27,6 +27,7 @@ async function AccountBody({
   searchParams: Promise<{ notice?: string }>;
 }) {
   const t = await getTranslations("account");
+  const tRoles = await getTranslations("roles");
   const user = await getSessionUser();
   if (!user) redirect("/login");
 
@@ -90,16 +91,21 @@ async function AccountBody({
             {memberships.map(({ membership, business }) => (
               <li
                 key={membership.id}
-                className="rounded-md border border-neutral-200 px-3 py-2"
+                className="flex items-center justify-between gap-3 rounded-md border border-neutral-200 px-3 py-2"
               >
-                <p className="font-medium">{business.name}</p>
+                <div>
+                  <p className="font-medium">{business.name}</p>
                 <p className="text-neutral-600">
                   {business.kind === "independent"
                     ? t("kindIndependent")
                     : t("kindSalon")}
                   {" · "}
-                  {t("role")}: {membership.role}
+                  {t("role")}: {tRoles(membership.role)}
                 </p>
+                </div>
+                <Link href={`/dashboard/${business.id}`} className="underline">
+                  {t("openDashboard")}
+                </Link>
               </li>
             ))}
           </ul>

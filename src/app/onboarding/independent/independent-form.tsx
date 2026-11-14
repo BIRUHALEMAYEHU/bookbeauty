@@ -20,24 +20,40 @@ const CATEGORIES = [
   "other",
 ] as const;
 
-export function IndependentForm({ defaultName }: { defaultName: string }) {
+export function IndependentForm({
+  defaultName,
+  existingHandle,
+}: {
+  defaultName: string;
+  /** She already has a professional profile; her handle is kept, not chosen again. */
+  existingHandle: string | null;
+}) {
   const t = useTranslations("onboarding");
   const [state, action, pending] = useActionState(createIndependentAction, initial);
 
   return (
     <form action={action} className="space-y-3">
-      <label className="block space-y-1 text-sm">
-        <span>{t("handle")}</span>
-        <input
-          name="handle"
-          required
-          minLength={2}
-          maxLength={40}
-          placeholder={t("handlePlaceholder")}
-          className="w-full rounded-md border border-neutral-300 px-3 py-2"
-        />
-        <span className="text-xs text-neutral-500">{t("handleHint")}</span>
-      </label>
+      {existingHandle ? (
+        <>
+          <input type="hidden" name="handle" value={existingHandle} />
+          <p className="rounded-md bg-neutral-100 px-3 py-2 text-sm text-neutral-700">
+            {t("handleKept", { handle: existingHandle })}
+          </p>
+        </>
+      ) : (
+        <label className="block space-y-1 text-sm">
+          <span>{t("handle")}</span>
+          <input
+            name="handle"
+            required
+            minLength={2}
+            maxLength={40}
+            placeholder={t("handlePlaceholder")}
+            className="w-full rounded-md border border-neutral-300 px-3 py-2"
+          />
+          <span className="text-xs text-neutral-500">{t("handleHint")}</span>
+        </label>
+      )}
       <label className="block space-y-1 text-sm">
         <span>{t("displayName")}</span>
         <input

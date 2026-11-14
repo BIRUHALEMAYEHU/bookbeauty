@@ -32,7 +32,7 @@ export async function createIndependentAction(
   });
 
   if (!result.ok) return { error: result.error };
-  redirect("/account");
+  redirect(`/dashboard/${result.business.id}`);
 }
 
 export async function createSalonAction(
@@ -60,5 +60,5 @@ export async function createSalonAction(
   });
 
   if (!result.ok) return { error: result.error };
-  redirect("/account");
+  redirect(`/dashboard/${result.business.id}`);
 }
