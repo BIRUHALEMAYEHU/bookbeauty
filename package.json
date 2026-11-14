@@ -13,7 +13,8 @@
     "db:up": "docker compose up -d --wait",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
-    "db:studio": "drizzle-kit studio"
+    "db:studio": "drizzle-kit studio",
+    "db:deploy": "node scripts/migrate.mjs"
   },
   "dependencies": {
     "arctic": "^3.7.0",
@@ -39,5 +40,8 @@
     "typescript": "^5",
     "vite-tsconfig-paths": "^6.1.1",
     "vitest": "^5.0.5"
+  },
+  "engines": {
+    "node": "22.x"
   }
 }

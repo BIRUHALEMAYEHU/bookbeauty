@@ -1,0 +1,54 @@
+# Render blueprint: one web service and one Postgres database in Frankfurt,
+# the closest well-served region to Ethiopia (technical-plan Section 1).
+# In Render: New > Blueprint, pick this repository.
+
+databases:
+  - name: book-db
+    plan: free
+    region: frankfurt
+    # The schema uses uuidv7(), which needs Postgres 18.
+    postgresMajorVersion: "18"
+    databaseName: book
+    user: book
+
+services:
+  - type: web
+    name: bookbeauty
+    runtime: node
+    plan: free
+    region: frankfurt
+    branch: main
+    # Deploy only after the GitHub checks (lint, typecheck, tests) pass.
+    autoDeployTrigger: checksPass
+    buildCommand: npm ci && npm run build
+    startCommand: npm run db:deploy && npm start
+    healthCheckPath: /
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: book-db
+          property: connectionString
+      - key: SESSION_SECRET
+        generateValue: true
+      # Change this if Render gives the service a different address.
+      - key: APP_URL
+        value: https://bookbeauty.onrender.com
+      # Set these in the Render dashboard when the accounts exist.
+      - key: RESEND_API_KEY
+        sync: false
+      - key: EMAIL_FROM
+        sync: false
+      - key: TURNSTILE_SITE_KEY
+        sync: false
+      - key: TURNSTILE_SECRET_KEY
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: TELEGRAM_BOT_USERNAME
+        sync: false

@@ -40,3 +40,14 @@ npm run db:migrate   # applies migrations to the development database
 Email and password work with no extra setup. Open http://localhost:3000/signup.
 
 Google and Telegram buttons appear only when you fill the matching variables in `.env` (see `.env.example`). Telegram also needs an HTTPS domain registered with BotFather, so for local testing use a tunnel such as ngrok, or stick to email for now.
+
+## Deploying (Render)
+
+`render.yaml` describes one web service and one Postgres 18 database in Frankfurt.
+
+1. In Render: **New > Blueprint**, connect GitHub and pick this repository.
+2. Render creates the database and the web service and generates `SESSION_SECRET`.
+3. If Render gives the service an address other than `https://bookbeauty.onrender.com`, update `APP_URL` in the service's environment.
+4. Each deploy runs `npm run db:deploy` (pending migrations) before starting. New commits deploy only after the GitHub checks pass.
+
+Email (`RESEND_API_KEY`, `EMAIL_FROM`), bot protection, Google and Telegram keys are entered in the Render dashboard. Without Resend, signup works but password reset emails cannot be sent.
