@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    services:
+      db:
+        image: postgres:18
+        env:
+          POSTGRES_USER: book
+          POSTGRES_PASSWORD: book
+          POSTGRES_DB: book_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U book -d book_test"
+          --health-interval 2s
+          --health-timeout 3s
+          --health-retries 30
+
+    env:
+      DATABASE_URL: postgres://book:book@localhost:5432/book_test
+      TEST_DATABASE_URL: postgres://book:book@localhost:5432/book_test
+      SESSION_SECRET: ci-session-secret-at-least-32-characters
+      APP_URL: http://localhost:3000
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
