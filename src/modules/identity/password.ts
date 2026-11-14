@@ -1,5 +1,14 @@
 import "server-only";
 import { randomBytes, scrypt, timingSafeEqual } from "node:crypto";
+import { z } from "zod";
+
+/** The one password rule, used at signup and when resetting. */
+export const passwordSchema = z
+  .string()
+  .min(8)
+  .max(200)
+  .regex(/[A-Za-z]/, "Password must include a letter")
+  .regex(/[0-9]/, "Password must include a number");
 
 const KEY_LENGTH = 64;
 const SCRYPT_OPTIONS = { N: 16384, r: 8, p: 1 };

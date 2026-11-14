@@ -38,7 +38,24 @@
       "oauth_failed": "Google sign-in failed. Try again.",
       "invalid_state": "Google sign-in expired. Start again.",
       "not_configured": "Telegram login is not set up yet.",
-      "invalid_payload": "Telegram login could not be verified."
+      "invalid_payload": "Telegram login could not be verified.",
+      "link_invalid": "This link has expired or was already used.",
+      "invalid_password": "Use at least 8 characters, with a letter and a number."
+    },
+    "forgotLink": "Forgot your password?",
+    "forgotTitle": "Reset your password",
+    "forgotSubtitle": "Enter the email you signed up with. We will send you a link to choose a new password.",
+    "forgotSubmit": "Send reset link",
+    "forgotSent": "If an account uses that email, a reset link is on its way. Check your inbox and spam folder.",
+    "forgotNoEmail": "Signed up with Telegram? Log in with Telegram instead; there is no password to reset.",
+    "resetTitle": "Choose a new password",
+    "resetSubtitle": "You will be logged in, and logged out everywhere else.",
+    "newPassword": "New password",
+    "resetSubmit": "Save new password",
+    "backToLogin": "Back to log in",
+    "requestNewLink": "Request a new link",
+    "notices": {
+      "email_verified": "Your email is confirmed. Log in to continue."
     }
   },
   "account": {
@@ -52,7 +69,17 @@
     "startOnboarding": "Get started",
     "role": "Role",
     "kindIndependent": "Independent practice",
-    "kindSalon": "Salon"
+    "kindSalon": "Salon",
+    "verifyEmailTitle": "Confirm your email",
+    "verifyEmailBody": "We sent a link to {email}. Confirming it lets you reset your password if you forget it.",
+    "verifyEmailResend": "Send the link again",
+    "notices": {
+      "email_verified": "Your email is confirmed.",
+      "verification_sent": "A new link is on its way. Check your inbox and spam folder.",
+      "verification_rate_limited": "You asked for several links already. Wait an hour and try again.",
+      "link_invalid": "That link has expired or was already used.",
+      "password_reset": "Your password is changed. You were logged out on other devices."
+    }
   },
   "onboarding": {
     "title": "How will you use Book?",
@@ -103,6 +130,24 @@
       "slug_reserved": "That page address cannot be used. Try another.",
       "already_has_independent": "You already have an independent practice.",
       "phone_invalid": "Enter a valid phone number, for example 0911 23 45 67."
+    }
+  },
+  "emails": {
+    "greeting": "Hello {name},",
+    "signature": "The Book team",
+    "verify": {
+      "subject": "Confirm your email for Book",
+      "body": "Please confirm this is your email address. It lets you reset your password if you ever forget it.",
+      "action": "Confirm my email",
+      "expiry": "This link works for 24 hours.",
+      "notYou": "If you did not create a Book account, ignore this email and do not open the link."
+    },
+    "reset": {
+      "subject": "Reset your Book password",
+      "body": "Someone asked to reset the password for your Book account.",
+      "action": "Choose a new password",
+      "expiry": "This link works for 1 hour and only once.",
+      "notYou": "If this was not you, ignore this email. Your password stays the same."
     }
   }
 }

@@ -45,6 +45,11 @@ export function LoginForm({
             className="w-full rounded-md border border-neutral-300 px-3 py-2"
           />
         </label>
+        <p className="text-right text-sm">
+          <Link href="/forgot-password" className="underline">
+            {t("forgotLink")}
+          </Link>
+        </p>
         {state.error ? (
           <p className="text-sm text-red-700" role="alert">
             {t(`errors.${state.error}` as "errors.invalid_credentials")}

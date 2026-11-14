@@ -43,6 +43,13 @@
       "when": 1793106025905,
       "tag": "0005_previous_unicorn",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1794681727443,
+      "tag": "0006_email_tokens",
+      "breakpoints": true
     }
   ]
 }

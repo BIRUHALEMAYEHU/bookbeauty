@@ -3,20 +3,62 @@ import { Suspense } from "react";
 import { getTranslations } from "next-intl/server";
 import { redirect } from "next/navigation";
 import { listMembershipsForUser } from "@/modules/businesses/queries";
-import { logoutAction } from "@/modules/identity/actions";
+import { logoutAction, resendVerificationAction } from "@/modules/identity/actions";
 import { getSessionUser } from "@/modules/identity/session";
 
 export const instant = false;
 
-async function AccountBody() {
+const NOTICES = [
+  "email_verified",
+  "verification_sent",
+  "verification_rate_limited",
+  "link_invalid",
+  "password_reset",
+] as const;
+type Notice = (typeof NOTICES)[number];
+
+function asNotice(value: string | undefined): Notice | null {
+  return NOTICES.find((notice) => notice === value) ?? null;
+}
+
+async function AccountBody({
+  searchParams,
+}: {
+  searchParams: Promise<{ notice?: string }>;
+}) {
   const t = await getTranslations("account");
   const user = await getSessionUser();
   if (!user) redirect("/login");
 
   const memberships = await listMembershipsForUser(user.id);
+  const notice = asNotice((await searchParams).notice);
+  const needsVerification = Boolean(user.email && !user.emailVerifiedAt);
 
   return (
     <div className="space-y-6">
+      {notice ? (
+        <p
+          className={`rounded-md px-3 py-2 text-sm ${
+            notice === "link_invalid" || notice === "verification_rate_limited"
+              ? "bg-red-50 text-red-700"
+              : "bg-green-50 text-green-800"
+          }`}
+          role="status"
+        >
+          {t(`notices.${notice}`)}
+        </p>
+      ) : null}
+      {needsVerification ? (
+        <section className="space-y-2 rounded-md border border-amber-300 bg-amber-50 px-3 py-3 text-sm">
+          <h2 className="font-medium">{t("verifyEmailTitle")}</h2>
+          <p className="text-neutral-700">{t("verifyEmailBody", { email: user.email! })}</p>
+          <form action={resendVerificationAction}>
+            <button type="submit" className="underline">
+              {t("verifyEmailResend")}
+            </button>
+          </form>
+        </section>
+      ) : null}
       <div className="space-y-4">
         <h1 className="text-2xl font-semibold tracking-tight">{t("title")}</h1>
         <dl className="space-y-2 text-sm">
@@ -76,11 +118,15 @@ async function AccountBody() {
   );
 }
 
-export default function AccountPage() {
+export default function AccountPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ notice?: string }>;
+}) {
   return (
     <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center p-6">
       <Suspense fallback={<p className="text-sm text-neutral-500">…</p>}>
-        <AccountBody />
+        <AccountBody searchParams={searchParams} />
       </Suspense>
     </main>
   );

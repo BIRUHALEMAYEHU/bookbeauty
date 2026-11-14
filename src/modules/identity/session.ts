@@ -1,16 +1,12 @@
 import "server-only";
-import { createHash, randomBytes } from "node:crypto";
 import { and, eq, gt } from "drizzle-orm";
 import { cookies } from "next/headers";
 import { db } from "@/db/client";
 import { sessions, users, type User } from "@/db/schema";
+import { generateToken, hashToken } from "@/lib/tokens";
 
 export const SESSION_COOKIE = "book_session";
 const SESSION_DAYS = 30;
-
-function hashToken(token: string) {
-  return createHash("sha256").update(token).digest("hex");
-}
 
 function sessionExpiry() {
   return new Date(Date.now() + SESSION_DAYS * 24 * 60 * 60 * 1000);
@@ -20,7 +16,7 @@ export async function createSessionRecord(
   userId: string,
   meta: { ipAddress?: string | null; userAgent?: string | null } = {},
 ) {
-  const token = randomBytes(32).toString("hex");
+  const token = generateToken();
   const tokenHash = hashToken(token);
   const expiresAt = sessionExpiry();
 

@@ -5,18 +5,14 @@ import { db } from "@/db/client";
 import { users } from "@/db/schema";
 import { consumeRateLimit, RATE_LIMITS } from "@/modules/abuse/rate-limit";
 import { createUserWithIdentity } from "./accounts";
-import { hashPassword, verifyPassword } from "./password";
+import { sendVerificationEmail } from "./email-verification";
+import { hashPassword, passwordSchema, verifyPassword } from "./password";
 import { createSession } from "./session";
 
 export const signupSchema = z.object({
   displayName: z.string().trim().min(2).max(80),
   email: z.string().trim().email().max(254).transform((v) => v.toLowerCase()),
-  password: z
-    .string()
-    .min(8)
-    .max(200)
-    .regex(/[A-Za-z]/, "Password must include a letter")
-    .regex(/[0-9]/, "Password must include a number"),
+  password: passwordSchema,
 });
 
 export const loginSchema = z.object({
@@ -54,6 +50,11 @@ export async function signupWithEmail(
       { displayName, email, passwordHash },
       { provider: "email", providerUserId: email },
     );
+
+    // A failed email must not fail the signup; she can resend from her account page.
+    await sendVerificationEmail(userId).catch((error: unknown) => {
+      console.error("Could not send verification email", error);
+    });
 
     await createSession(userId, meta);
     return { ok: true };

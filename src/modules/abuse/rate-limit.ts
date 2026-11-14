@@ -75,4 +75,19 @@ export const RATE_LIMITS = {
     limit: 10,
     windowSeconds: 15 * 60,
   }),
+  verificationEmailUser: (userId: string) => ({
+    key: `verify-email:user:${userId}`,
+    limit: 3,
+    windowSeconds: 60 * 60,
+  }),
+  passwordResetIp: (ip: string) => ({
+    key: `password-reset:ip:${ip || "unknown"}`,
+    limit: 10,
+    windowSeconds: 60 * 60,
+  }),
+  passwordResetEmail: (email: string) => ({
+    key: `password-reset:email:${email.toLowerCase()}`,
+    limit: 3,
+    windowSeconds: 60 * 60,
+  }),
 } as const satisfies Record<string, (id: string) => RateLimitPolicy>;

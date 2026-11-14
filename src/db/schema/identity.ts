@@ -117,6 +117,38 @@ export const professionalProfiles = pgTable(
   ],
 );
 
+export const emailTokenPurposeEnum = pgEnum("email_token_purpose", [
+  "verify_email",
+  "reset_password",
+]);
+
+/**
+ * One-time links sent by email. Only the SHA-256 of the token is stored; the
+ * raw token exists only in the link. `email` is the address the link was sent
+ * to, so a link stops working if the account's email changes.
+ */
+export const emailTokens = pgTable(
+  "email_tokens",
+  {
+    id: uuid("id").primaryKey().default(sql`uuidv7()`),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    purpose: emailTokenPurposeEnum("purpose").notNull(),
+    email: citext("email").notNull(),
+    tokenHash: text("token_hash").notNull(),
+    expiresAt: timestamp("expires_at", { withTimezone: true, mode: "date" }).notNull(),
+    usedAt: timestamp("used_at", { withTimezone: true, mode: "date" }),
+    createdAt: timestamp("created_at", { withTimezone: true, mode: "date" })
+      .notNull()
+      .default(sql`now()`),
+  },
+  (table) => [
+    uniqueIndex("email_tokens_token_hash_unique").on(table.tokenHash),
+    index("email_tokens_user_id_idx").on(table.userId),
+  ],
+);
+
 export type User = typeof users.$inferSelect;
 export type Session = typeof sessions.$inferSelect;
 export type ProfessionalProfile = typeof professionalProfiles.$inferSelect;
