@@ -34,8 +34,7 @@ describe("forBusiness", () => {
     expect(scope?.can("settings.manage")).toBe(true);
     expect(scope?.can("activity_log.view")).toBe(true);
 
-    const filter = scope!.whereBusiness(locations.businessId);
-    const rows = await db.select().from(locations).where(filter);
+    const rows = await scope!.select(locations);
     expect(rows).toHaveLength(1);
     expect(rows[0]?.id).toBe(salon.location.id);
   });
@@ -121,5 +120,94 @@ describe("forBusiness", () => {
 
     const scope = await forBusiness(salon.business.id, owner.id);
     expect(scope).toBeNull();
+  });
+});
+
+async function twoSalons() {
+  const ownerA = await seedUser("Owner A");
+  const ownerB = await seedUser("Owner B");
+  const stamp = `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
+  const a = await createSalon(ownerA.id, { name: "Salon A", slug: `a-${stamp}`, category: "hair" });
+  const b = await createSalon(ownerB.id, { name: "Salon B", slug: `b-${stamp}`, category: "hair" });
+  if (!a.ok || !b.ok) throw new Error("setup failed");
+  const scopeA = await forBusiness(a.business.id, ownerA.id);
+  if (!scopeA) throw new Error("no scope");
+  return { a, b, ownerB, scopeA };
+}
+
+describe("scoped queries keep businesses apart", () => {
+  it("never reads another business's rows, even when asked for them by id", async () => {
+    const { a, b, scopeA } = await twoSalons();
+
+    const all = await scopeA.select(locations);
+    expect(all.map((row) => row.businessId)).toEqual([a.business.id]);
+
+    const targeted = await scopeA.select(locations, eq(locations.id, b.location.id));
+    expect(targeted).toEqual([]);
+  });
+
+  it("stamps its own business on inserts, whatever the caller passes", async () => {
+    const { a, b, scopeA } = await twoSalons();
+
+    const [created] = await scopeA.insert(locations, {
+      // A caller trying to write into another business:
+      ...({ businessId: b.business.id } as object),
+      name: "Piassa",
+      slug: "piassa",
+    });
+    expect(created?.businessId).toBe(a.business.id);
+  });
+
+  it("cannot change or delete another business's rows", async () => {
+    const { b, scopeA } = await twoSalons();
+
+    const updated = await scopeA.update(
+      locations,
+      { name: "Hijacked" },
+      eq(locations.id, b.location.id),
+    );
+    expect(updated).toEqual([]);
+
+    const deleted = await scopeA.delete(locations, eq(locations.id, b.location.id));
+    expect(deleted).toEqual([]);
+
+    const [stillThere] = await db.select().from(locations).where(eq(locations.id, b.location.id));
+    expect(stillThere?.name).toBe(b.location.name);
+  });
+
+  it("cannot move a row into another business", async () => {
+    const { a, b, scopeA } = await twoSalons();
+
+    const [moved] = await scopeA.update(
+      locations,
+      { businessId: b.business.id, name: "Renamed" },
+      eq(locations.id, a.location.id),
+    );
+    expect(moved?.name).toBe("Renamed");
+    expect(moved?.businessId).toBe(a.business.id);
+  });
+
+  it("edits its own business row but not its owner", async () => {
+    const { a, ownerB, scopeA } = await twoSalons();
+
+    const updated = await scopeA.updateBusiness({ about: "Bole Road", ownerUserId: ownerB.id });
+    expect(updated.about).toBe("Bole Road");
+    expect(updated.ownerUserId).toBe(a.business.ownerUserId);
+    expect((await scopeA.business()).id).toBe(a.business.id);
+  });
+
+  it("rolls back every write in a failed transaction", async () => {
+    const { scopeA } = await twoSalons();
+
+    await expect(
+      scopeA.transaction(async (scoped) => {
+        await scoped.insert(locations, { name: "Kazanchis", slug: "kazanchis" });
+        // Same slug again breaks the per-business unique index.
+        await scoped.insert(locations, { name: "Kazanchis 2", slug: "kazanchis" });
+      }),
+    ).rejects.toThrow();
+
+    const slugs = (await scopeA.select(locations)).map((row) => row.slug);
+    expect(slugs).not.toContain("kazanchis");
   });
 });

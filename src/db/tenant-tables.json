@@ -1,0 +1,24 @@
+{
+  "description": "Schema exports whose rows belong to one business. Feature code may not import these (or anything in alsoGuarded) from @/db/schema; it goes through forBusiness() in src/db/scope.ts. eslint.config.mjs reads this file, and src/db/tenancy.test.ts fails if a table with a business_id column is missing from \"tables\".",
+  "tables": [
+    "locations",
+    "memberships",
+    "invitations",
+    "entitlementOverrides",
+    "subscriptions",
+    "subscriptionPayments",
+    "activityLog"
+  ],
+  "alsoGuarded": {
+    "businesses": "The business row itself. Read and change it through scope.business() and scope.updateBusiness().",
+    "membershipLocations": "Has no business_id; its rows belong to a membership, so it is guarded with memberships."
+  },
+  "platformFiles": [
+    "src/modules/businesses/create.ts",
+    "src/modules/businesses/queries.ts",
+    "src/modules/identity/actor.ts",
+    "src/modules/entitlements/resolve.ts",
+    "src/modules/audit/log.ts"
+  ],
+  "platformFilesReason": "These create businesses, decide who is acting in one, resolve plans and write the activity log. They run before a scope exists, or for every business, so they import business tables directly. Keep this list short."
+}
