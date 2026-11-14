@@ -3,6 +3,7 @@ import { and, eq, type InferInsertModel, type SQL } from "drizzle-orm";
 import type { PgColumn, PgTable, PgUpdateSetSource } from "drizzle-orm/pg-core";
 import { db, type DbExecutor } from "@/db/client";
 import { businesses, type Business } from "@/db/schema";
+import { logActivity, type LogActivityInput } from "@/modules/audit/log";
 import { resolveActor } from "@/modules/identity/actor";
 import {
   assertCan,
@@ -20,18 +21,24 @@ type InsertValues<T extends TenantTable> = Omit<InferInsertModel<T>, "businessId
 /**
  * Query helpers that always filter by, or stamp, the scope's business_id.
  * Feature code reads and writes business data only through these
- * (technical-plan Section 3); a lint rule blocks importing business tables
- * elsewhere.
+ * (technical-plan Section 3): a lint rule stops feature modules importing the
+ * database connection, so there is no other way in. If a feature needs a
+ * query these cannot express (a join, a count), add a scoped helper here.
  */
 export type ScopedQueries = ReturnType<typeof scopedQueries>;
 
-function scopedQueries(executor: DbExecutor, businessId: string) {
+function scopedQueries(executor: DbExecutor, businessId: string, actorUserId: string) {
   const own = (table: TenantTable, where?: SQL) => {
     const scoped = eq(table.businessId, businessId);
     return where ? and(scoped, where)! : scoped;
   };
 
   return {
+    /** Records a change in this business's activity log (D60), as the person acting. */
+    log(entry: Omit<LogActivityInput, "businessId" | "actorUserId">) {
+      return logActivity({ ...entry, businessId, actorUserId }, executor);
+    },
+
     /** This business's own row (settings, page content). */
     async business(): Promise<Business> {
       const [row] = await executor
@@ -94,16 +101,6 @@ function scopedQueries(executor: DbExecutor, businessId: string) {
         .where(own(table, where))
         .returning() as unknown as Promise<T["$inferSelect"][]>;
     },
-
-    /**
-     * The business_id filter for hand-written queries (joins, aggregates).
-     * Prefer the methods above; when you use this, every business table in
-     * the query needs its own filter.
-     */
-    whereBusiness(businessIdColumn: PgColumn, extra?: SQL): SQL {
-      const scoped = eq(businessIdColumn, businessId);
-      return extra ? and(scoped, extra)! : scoped;
-    },
   };
 }
 
@@ -128,11 +125,11 @@ export async function forBusiness(
   if (!actor) return null;
 
   return {
-    ...scopedQueries(db, businessId),
+    ...scopedQueries(db, businessId, userId),
     businessId,
     actor,
     can: (action, resource) => can(actor, action, resource),
     require: (action, resource) => assertCan(actor, action, resource),
-    transaction: (fn) => db.transaction((tx) => fn(scopedQueries(tx, businessId))),
+    transaction: (fn) => db.transaction((tx) => fn(scopedQueries(tx, businessId, userId))),
   };
 }

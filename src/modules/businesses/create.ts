@@ -14,7 +14,7 @@ import {
   type Membership,
   type ProfessionalProfile,
 } from "@/db/schema";
-import { normalisePhone } from "@/lib/phone";
+import { normaliseContactPhone } from "@/lib/phone";
 import { normaliseSlug } from "@/lib/slug";
 import { logActivity } from "@/modules/audit/log";
 import { createFreeSubscription } from "@/modules/entitlements/resolve";
@@ -118,7 +118,7 @@ function phoneOrError(
   raw: string | undefined,
 ): { ok: true; phone: string | null } | { ok: false; error: "phone_invalid" } {
   if (!raw) return { ok: true, phone: null };
-  const phone = normalisePhone(raw);
+  const phone = normaliseContactPhone(raw);
   if (!phone) return { ok: false, error: "phone_invalid" };
   return { ok: true, phone };
 }

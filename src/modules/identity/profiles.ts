@@ -1,7 +1,7 @@
 import "server-only";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
-import { db } from "@/db/client";
+import { db, type DbExecutor } from "@/db/client";
 import { professionalProfiles, users, type ProfessionalProfile } from "@/db/schema";
 import { normaliseSlug } from "@/lib/slug";
 
@@ -95,4 +95,24 @@ export async function createProfessionalProfile(
     if (existing) return { ok: false, error: "already_has_profile" };
     return { ok: false, error: "handle_taken" };
   }
+}
+
+export const updateProfileSchema = z.object({
+  displayName: z.string().trim().min(2).max(80),
+  bio: z.string().trim().max(2000).optional(),
+});
+
+/** Changes her public name and bio. Her handle is not changed here (renames need redirects, D101). */
+export async function updateProfessionalProfile(
+  userId: string,
+  input: z.input<typeof updateProfileSchema>,
+  executor: DbExecutor = db,
+): Promise<ProfessionalProfile | null> {
+  const parsed = updateProfileSchema.parse(input);
+  const [row] = await executor
+    .update(professionalProfiles)
+    .set({ displayName: parsed.displayName, bio: parsed.bio || null, updatedAt: new Date() })
+    .where(eq(professionalProfiles.userId, userId))
+    .returning();
+  return row ?? null;
 }

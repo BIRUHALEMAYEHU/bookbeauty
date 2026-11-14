@@ -35,3 +35,35 @@ export function normalisePhone(input: string): string | null {
 
   return null;
 }
+
+/**
+ * Like normalisePhone, but also accepts Ethiopian landlines ("011 123 4567"),
+ * for a business's public contact number only (D106). Customer numbers are the
+ * matching key and stay mobile-only.
+ */
+export function normaliseContactPhone(input: string): string | null {
+  const mobile = normalisePhone(input);
+  if (mobile) return mobile;
+
+  const trimmed = input.trim();
+  const digits = trimmed.replace(/[\s\-().]/g, "").replace(/^\+/, "");
+  if (!/^\d+$/.test(digits)) return null;
+
+  let national: string | null = null;
+  if (digits.startsWith(ETHIOPIA_COUNTRY_CODE) && digits.length === 12) national = digits.slice(3);
+  else if (!trimmed.startsWith("+") && digits.startsWith("0") && digits.length === 10) {
+    national = digits.slice(1);
+  }
+
+  // Landline area codes start with 1 to 5 (Addis Ababa is 11).
+  return national && /^[1-5]\d{8}$/.test(national) ? `+${ETHIOPIA_COUNTRY_CODE}${national}` : null;
+}
+
+/** "0911 23 45 67" for mobiles, "011 123 4567" for landlines; other countries unchanged. */
+export function formatPhone(e164: string): string {
+  if (!e164.startsWith(`+${ETHIOPIA_COUNTRY_CODE}`) || e164.length !== 13) return e164;
+  const n = `0${e164.slice(4)}`;
+  return /^0[79]/.test(n)
+    ? `${n.slice(0, 4)} ${n.slice(4, 6)} ${n.slice(6, 8)} ${n.slice(8)}`
+    : `${n.slice(0, 3)} ${n.slice(3, 6)} ${n.slice(6)}`;
+}

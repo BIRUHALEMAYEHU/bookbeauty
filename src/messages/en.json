@@ -178,6 +178,44 @@
     "yourRole": "You are signed in here as: {role}.",
     "bookingLink": "Your booking link",
     "bookingLinkHint": "Put this link in your Instagram or TikTok bio. Customers book from it with just their name and phone number.",
-    "bookingLinkMissing": "This place has no public address yet."
+    "bookingLinkMissing": "This place has no public address yet.",
+    "nav": {
+      "overview": "Overview",
+      "page": "Public page"
+    },
+    "viewPage": "View your page",
+    "editPage": "Edit your page"
+  },
+  "public": {
+    "about": "About",
+    "location": "Location",
+    "locations": "Locations",
+    "contact": "Contact",
+    "team": "Our team",
+    "whereToBook": "Where to book {name}",
+    "ownPractice": "Own practice"
+  },
+  "pageSettings": {
+    "title": "Your public page",
+    "subtitle": "This is what customers see when they open your link.",
+    "view": "View your page",
+    "salonName": "Business name",
+    "displayName": "Your name",
+    "about": "About the business",
+    "bio": "About you",
+    "phone": "Contact phone (optional)",
+    "phoneHint": "Mobile or landline, for example 0911 23 45 67 or 011 123 4567.",
+    "locationName": "Location name",
+    "address": "Address or landmark (optional)",
+    "addressPublic": "Show this address on my page",
+    "addressPublicHint": "Leave it off if you work from home and prefer to share the address after someone books.",
+    "save": "Save",
+    "saving": "Saving…",
+    "saved": "Saved. Your page is updated.",
+    "errors": {
+      "invalid_input": "Check the form and try again.",
+      "phone_invalid": "Enter a valid phone number, for example 0911 23 45 67 or 011 123 4567.",
+      "forbidden": "Only the owner can change the public page."
+    }
   }
 }

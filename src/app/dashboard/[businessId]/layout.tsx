@@ -57,6 +57,16 @@ async function DashboardHeader({ params }: { params: Promise<{ businessId: strin
           </form>
         </nav>
       </div>
+      <nav className="mx-auto flex w-full max-w-3xl gap-4 px-4 pb-2 text-sm">
+        <Link href={`/dashboard/${businessId}`} className="underline">
+          {t("nav.overview")}
+        </Link>
+        {scope.can("settings.manage") ? (
+          <Link href={`/dashboard/${businessId}/page-settings`} className="underline">
+            {t("nav.page")}
+          </Link>
+        ) : null}
+      </nav>
     </header>
   );
 }

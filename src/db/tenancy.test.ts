@@ -32,9 +32,21 @@ describe("tenant table list", () => {
     }
   });
 
-  it("names platform files that exist", () => {
-    for (const file of tenancy.platformFiles) {
-      expect(existsSync(file), file).toBe(true);
+  it("names files and folders that exist", () => {
+    for (const entry of [...tenancy.databaseFiles, ...tenancy.platformFiles]) {
+      const path = entry.replace(/\/\*\*$/, "");
+      expect(existsSync(path), entry).toBe(true);
+    }
+  });
+
+  it("only gives business-table access to files that may use the database", () => {
+    for (const entry of tenancy.platformFiles) {
+      const covered = tenancy.databaseFiles.some(
+        (allowed) =>
+          allowed === entry ||
+          (allowed.endsWith("/**") && entry.startsWith(allowed.slice(0, -2))),
+      );
+      expect(covered, entry).toBe(true);
     }
   });
 });

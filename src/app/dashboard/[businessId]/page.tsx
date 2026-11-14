@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Suspense } from "react";
 import { getTranslations } from "next-intl/server";
 import { listHats } from "@/modules/businesses/queries";
@@ -32,6 +33,16 @@ async function Overview({ params }: { params: Promise<{ businessId: string }> })
               {bookingLink}
             </p>
             <p className="text-sm text-neutral-600">{t("bookingLinkHint")}</p>
+            <p className="flex gap-4 text-sm">
+              <Link href={hat!.publicPath!} className="underline">
+                {t("viewPage")}
+              </Link>
+              {scope.can("settings.manage") ? (
+                <Link href={`/dashboard/${businessId}/page-settings`} className="underline">
+                  {t("editPage")}
+                </Link>
+              ) : null}
+            </p>
           </>
         ) : (
           <p className="text-sm text-neutral-600">{t("bookingLinkMissing")}</p>

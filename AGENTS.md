@@ -17,6 +17,7 @@ Read `docs/decisions.md`, `docs/data-model.md` and `docs/technical-plan.md` befo
 - Store money as integer minor units (santim) with a currency (`src/lib/money.ts`).
 - Normalise phone numbers with `normalisePhone` from `src/lib/phone.ts` before storing or matching (D92).
 - Store instants as `timestamptz` in UTC.
-- Business-owned data is only read or written through the scoped data layer, `forBusiness()` in `src/db/scope.ts`, never by querying business tables directly (`docs/technical-plan.md`, Section 3). A new table with a `business_id` column goes into `src/db/tenant-tables.json`; lint and a test enforce this.
+- Business-owned data is only read or written through the scoped data layer, `forBusiness()` in `src/db/scope.ts`, never by querying business tables directly (`docs/technical-plan.md`, Section 3). Feature modules may not import `@/db/client`; a new table with a `business_id` column goes into `src/db/tenant-tables.json`. Lint and a test enforce this.
+- Anything that changes what a public page shows calls `updateTag()` with the matching tag from `src/lib/cache-tags.ts`.
 - Schema changes go through Drizzle migrations (`npm run db:generate`). Database rules that Drizzle cannot express (exclusion constraints, extensions) go in custom SQL migrations.
 - Run `npm test`, `npm run typecheck` and `npm run lint` before committing.

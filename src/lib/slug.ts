@@ -3,6 +3,8 @@
  * `reserved_names` table lands with Layer 1 address tooling.
  */
 export const RESERVED_NAMES = new Set([
+  // Every top-level route must be here, or a business could claim its address.
+  "about",
   "admin",
   "api",
   "account",
@@ -10,14 +12,21 @@ export const RESERVED_NAMES = new Set([
   "book",
   "booking",
   "dashboard",
+  "forgot-password",
   "help",
   "login",
   "logout",
   "me",
+  "onboarding",
   "platform",
+  "pricing",
+  "privacy",
+  "reset-password",
   "settings",
   "signup",
   "support",
+  "terms",
+  "verify-email",
   "www",
 ]);
 

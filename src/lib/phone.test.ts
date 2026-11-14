@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { normalisePhone } from "./phone";
+import { formatPhone, normaliseContactPhone, normalisePhone } from "./phone";
 
 describe("normalisePhone", () => {
   it.each([
@@ -31,5 +31,32 @@ describe("normalisePhone", () => {
 
   it("does not guess the country for numbers without + or a local prefix", () => {
     expect(normalisePhone("442079460958")).toBeNull();
+  });
+});
+
+describe("normaliseContactPhone", () => {
+  it("accepts mobiles and Ethiopian landlines", () => {
+    expect(normaliseContactPhone("0911 23 45 67")).toBe("+251911234567");
+    expect(normaliseContactPhone("011 123 4567")).toBe("+251111234567");
+    expect(normaliseContactPhone("+251 11 123 4567")).toBe("+251111234567");
+    expect(normaliseContactPhone("0221 12 34 56")).toBe("+251221123456");
+  });
+
+  it("rejects numbers that are neither", () => {
+    expect(normaliseContactPhone("061 123 4567")).toBeNull();
+    expect(normaliseContactPhone("12345")).toBeNull();
+    expect(normaliseContactPhone("011-ABC")).toBeNull();
+  });
+
+  it("keeps customer matching mobile-only", () => {
+    expect(normalisePhone("011 123 4567")).toBeNull();
+  });
+});
+
+describe("formatPhone", () => {
+  it("shows Ethiopian numbers the way people write them", () => {
+    expect(formatPhone("+251911234567")).toBe("0911 23 45 67");
+    expect(formatPhone("+251111234567")).toBe("011 123 4567");
+    expect(formatPhone("+447700900123")).toBe("+447700900123");
   });
 });
