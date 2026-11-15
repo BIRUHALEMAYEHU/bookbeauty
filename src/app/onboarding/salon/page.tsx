@@ -14,8 +14,8 @@ async function SalonBody() {
   return (
     <div className="space-y-4">
       <div className="space-y-2">
-        <h1 className="text-2xl font-semibold tracking-tight">{t("salonTitle")}</h1>
-        <p className="text-sm text-neutral-600">{t("salonFormSubtitle")}</p>
+        <h1 className="title">{t("salonTitle")}</h1>
+        <p className="text-sm text-muted">{t("salonFormSubtitle")}</p>
       </div>
       <SalonForm />
     </div>
@@ -25,7 +25,7 @@ async function SalonBody() {
 export default function SalonOnboardingPage() {
   return (
     <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center p-6">
-      <Suspense fallback={<p className="text-sm text-neutral-500">…</p>}>
+      <Suspense fallback={<p className="text-sm text-muted">…</p>}>
         <SalonBody />
       </Suspense>
     </main>

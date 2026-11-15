@@ -12,13 +12,13 @@ export default async function AdminBusinessesPage() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-2xl font-semibold tracking-tight">{t("businesses.title")}</h1>
+      <h1 className="title">{t("businesses.title")}</h1>
       {rows.length === 0 ? (
-        <p className="text-sm text-neutral-600">{t("businesses.empty")}</p>
+        <p className="text-sm text-muted">{t("businesses.empty")}</p>
       ) : (
-        <div className="overflow-x-auto rounded-md border border-neutral-200">
+        <div className="overflow-x-auto rounded-md border border-line">
           <table className="w-full text-left text-sm">
-            <thead className="border-b border-neutral-200 text-neutral-600">
+            <thead className="border-b border-line text-muted">
               <tr>
                 <th className="px-3 py-2 font-medium">{t("businesses.name")}</th>
                 <th className="px-3 py-2 font-medium">{t("businesses.kind")}</th>
@@ -27,23 +27,23 @@ export default async function AdminBusinessesPage() {
                 <th className="px-3 py-2 font-medium">{t("businesses.created")}</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-neutral-200">
+            <tbody className="divide-y divide-line">
               {rows.map((row) => {
                 const address = row.kind === "salon" ? row.slug && `/${row.slug}` : row.handle && `/@${row.handle}`;
                 return (
                   <tr key={row.id}>
                     <td className="px-3 py-2">
-                      <Link href={`/admin/businesses/${row.id}`} className="font-medium underline">
+                      <Link href={`/admin/businesses/${row.id}`} className="link">
                         {row.name}
                       </Link>
-                      {address ? <span className="block text-neutral-500">{address}</span> : null}
+                      {address ? <span className="block text-muted">{address}</span> : null}
                     </td>
                     <td className="px-3 py-2">
                       {row.kind === "salon" ? t("businesses.kindSalon") : t("businesses.kindIndependent")}
                     </td>
                     <td className="px-3 py-2">
                       {row.ownerName}
-                      <span className="block text-neutral-500">
+                      <span className="block text-muted">
                         {row.ownerEmail ?? t("businesses.noEmail")}
                       </span>
                     </td>
@@ -59,7 +59,7 @@ export default async function AdminBusinessesPage() {
         </div>
       )}
       {rows.length >= 200 ? (
-        <p className="text-sm text-neutral-500">{t("limitNote", { count: rows.length })}</p>
+        <p className="text-sm text-muted">{t("limitNote", { count: rows.length })}</p>
       ) : null}
     </div>
   );

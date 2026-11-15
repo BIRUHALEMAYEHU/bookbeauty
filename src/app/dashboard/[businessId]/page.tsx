@@ -17,35 +17,35 @@ async function Overview({ params }: { params: Promise<{ businessId: string }> })
   return (
     <div className="space-y-6">
       <div className="space-y-1">
-        <h1 className="text-2xl font-semibold tracking-tight">
+        <h1 className="title">
           {t("welcome", { name: user.displayName })}
         </h1>
-        <p className="text-sm text-neutral-600">
+        <p className="text-sm text-muted">
           {t("yourRole", { role: tRoles(scope.actor.role) })}
         </p>
       </div>
 
-      <section className="space-y-2 rounded-md border border-neutral-200 p-4">
-        <h2 className="font-medium">{t("bookingLink")}</h2>
+      <section className="space-y-3 border-y border-line py-5">
+        <h2 className="title-sm">{t("bookingLink")}</h2>
         {bookingLink ? (
           <>
-            <p className="break-all rounded bg-neutral-100 px-3 py-2 font-mono text-sm">
+            <p className="break-all rounded-md bg-wash px-3 py-2.5 font-semibold">
               {bookingLink}
             </p>
-            <p className="text-sm text-neutral-600">{t("bookingLinkHint")}</p>
-            <p className="flex gap-4 text-sm">
-              <a href={bookingLink} className="underline">
+            <p className="text-sm text-muted">{t("bookingLinkHint")}</p>
+            <p className="flex flex-wrap gap-3">
+              <a href={bookingLink} className="btn btn-primary btn-small">
                 {t("viewPage")}
               </a>
               {scope.can("settings.manage") ? (
-                <Link href={`/dashboard/${businessId}/page-settings`} className="underline">
+                <Link href={`/dashboard/${businessId}/page-settings`} className="btn btn-quiet btn-small">
                   {t("editPage")}
                 </Link>
               ) : null}
             </p>
           </>
         ) : (
-          <p className="text-sm text-neutral-600">{t("bookingLinkMissing")}</p>
+          <p className="text-sm text-muted">{t("bookingLinkMissing")}</p>
         )}
       </section>
     </div>
@@ -54,7 +54,7 @@ async function Overview({ params }: { params: Promise<{ businessId: string }> })
 
 export default function BusinessDashboardPage({ params }: PageProps<"/dashboard/[businessId]">) {
   return (
-    <Suspense fallback={<p className="text-sm text-neutral-500">…</p>}>
+    <Suspense fallback={<p className="text-sm text-muted">…</p>}>
       <Overview params={params} />
     </Suspense>
   );

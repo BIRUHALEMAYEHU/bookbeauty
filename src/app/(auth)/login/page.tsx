@@ -21,16 +21,16 @@ export default async function LoginPage({
   return (
     <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center gap-6 p-6">
       <div className="space-y-1">
-        <h1 className="text-2xl font-semibold tracking-tight">{t("loginTitle")}</h1>
-        <p className="text-sm text-neutral-600">{t("loginSubtitle")}</p>
+        <h1 className="title">{t("loginTitle")}</h1>
+        <p className="text-sm text-muted">{t("loginSubtitle")}</p>
       </div>
       {notice === "email_verified" ? (
-        <p className="rounded-md bg-green-50 px-3 py-2 text-sm text-green-800" role="status">
+        <p className="rounded-md bg-primary-tint px-3 py-2 text-sm text-primary-dark" role="status">
           {t("notices.email_verified")}
         </p>
       ) : null}
       {error ? (
-        <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700" role="alert">
+        <p className="rounded-md bg-danger-tint px-3 py-2 text-sm text-danger" role="alert">
           {t(`errors.${error}` as "errors.oauth_failed")}
         </p>
       ) : null}

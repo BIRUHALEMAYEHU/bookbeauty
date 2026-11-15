@@ -26,17 +26,17 @@ export function SalonForm() {
 
   return (
     <form action={action} className="space-y-3">
-      <label className="block space-y-1 text-sm">
+      <label className="field">
         <span>{t("salonName")}</span>
         <input
           name="name"
           required
           minLength={2}
           maxLength={120}
-          className="w-full rounded-md border border-neutral-300 px-3 py-2"
+          className="field-input"
         />
       </label>
-      <label className="block space-y-1 text-sm">
+      <label className="field">
         <span>{t("slug")}</span>
         <input
           name="slug"
@@ -44,17 +44,17 @@ export function SalonForm() {
           minLength={2}
           maxLength={40}
           placeholder={t("slugPlaceholder")}
-          className="w-full rounded-md border border-neutral-300 px-3 py-2"
+          className="field-input"
         />
-        <span className="text-xs text-neutral-500">{t("slugHint")}</span>
+        <span className="text-xs text-muted">{t("slugHint")}</span>
       </label>
-      <label className="block space-y-1 text-sm">
+      <label className="field">
         <span>{t("category")}</span>
         <select
           name="category"
           required
           defaultValue="hair"
-          className="w-full rounded-md border border-neutral-300 px-3 py-2"
+          className="field-input"
         >
           {CATEGORIES.map((key) => (
             <option key={key} value={key}>
@@ -63,52 +63,52 @@ export function SalonForm() {
           ))}
         </select>
       </label>
-      <label className="block space-y-1 text-sm">
+      <label className="field">
         <span>{t("locationName")}</span>
         <input
           name="locationName"
           defaultValue="Main"
-          className="w-full rounded-md border border-neutral-300 px-3 py-2"
+          className="field-input"
         />
       </label>
-      <label className="block space-y-1 text-sm">
+      <label className="field">
         <span>{t("phone")}</span>
         <input
           name="phone"
           type="tel"
-          className="w-full rounded-md border border-neutral-300 px-3 py-2"
+          className="field-input"
         />
       </label>
-      <label className="block space-y-1 text-sm">
+      <label className="field">
         <span>{t("address")}</span>
         <input
           name="addressText"
-          className="w-full rounded-md border border-neutral-300 px-3 py-2"
+          className="field-input"
         />
       </label>
-      <label className="block space-y-1 text-sm">
+      <label className="field">
         <span>{t("about")}</span>
         <textarea
           name="about"
           rows={3}
           maxLength={4000}
-          className="w-full rounded-md border border-neutral-300 px-3 py-2"
+          className="field-input"
         />
       </label>
       {state.error ? (
-        <p className="text-sm text-red-700" role="alert">
+        <p className="text-sm text-danger" role="alert">
           {t(`errors.${state.error}`)}
         </p>
       ) : null}
       <button
         type="submit"
         disabled={pending}
-        className="w-full rounded-md bg-neutral-900 px-3 py-2 text-sm text-white disabled:opacity-60"
+        className="btn btn-primary w-full"
       >
         {pending ? t("working") : t("salonSubmit")}
       </button>
-      <p className="text-center text-sm text-neutral-600">
-        <Link href="/onboarding" className="underline">
+      <p className="text-center text-sm text-muted">
+        <Link href="/onboarding" className="link">
           {t("back")}
         </Link>
       </p>

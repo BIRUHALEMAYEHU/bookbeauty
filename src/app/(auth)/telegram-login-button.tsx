@@ -44,7 +44,7 @@ export function TelegramLoginButton({ botUsername }: { botUsername: string }) {
     <div className="flex flex-col items-center gap-2">
       <div ref={containerRef} />
       {error ? (
-        <p className="text-sm text-red-700" role="alert">
+        <p className="text-sm text-danger" role="alert">
           {t(`errors.${error}` as "errors.invalid_payload")}
         </p>
       ) : null}

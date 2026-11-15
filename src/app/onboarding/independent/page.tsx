@@ -20,10 +20,10 @@ async function IndependentBody() {
   return (
     <div className="space-y-4">
       <div className="space-y-2">
-        <h1 className="text-2xl font-semibold tracking-tight">
+        <h1 className="title">
           {t("independentTitle")}
         </h1>
-        <p className="text-sm text-neutral-600">{t("independentFormSubtitle")}</p>
+        <p className="text-sm text-muted">{t("independentFormSubtitle")}</p>
       </div>
       <IndependentForm
         defaultName={profile?.displayName ?? user.displayName}
@@ -36,7 +36,7 @@ async function IndependentBody() {
 export default function IndependentOnboardingPage() {
   return (
     <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center p-6">
-      <Suspense fallback={<p className="text-sm text-neutral-500">…</p>}>
+      <Suspense fallback={<p className="text-sm text-muted">…</p>}>
         <IndependentBody />
       </Suspense>
     </main>

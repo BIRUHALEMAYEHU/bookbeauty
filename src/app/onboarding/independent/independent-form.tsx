@@ -36,12 +36,12 @@ export function IndependentForm({
       {existingHandle ? (
         <>
           <input type="hidden" name="handle" value={existingHandle} />
-          <p className="rounded-md bg-neutral-100 px-3 py-2 text-sm text-neutral-700">
+          <p className="rounded-md bg-wash px-3 py-2 text-sm text-muted">
             {t("handleKept", { handle: existingHandle })}
           </p>
         </>
       ) : (
-        <label className="block space-y-1 text-sm">
+        <label className="field">
           <span>{t("handle")}</span>
           <input
             name="handle"
@@ -49,12 +49,12 @@ export function IndependentForm({
             minLength={2}
             maxLength={40}
             placeholder={t("handlePlaceholder")}
-            className="w-full rounded-md border border-neutral-300 px-3 py-2"
+            className="field-input"
           />
-          <span className="text-xs text-neutral-500">{t("handleHint")}</span>
+          <span className="text-xs text-muted">{t("handleHint")}</span>
         </label>
       )}
-      <label className="block space-y-1 text-sm">
+      <label className="field">
         <span>{t("displayName")}</span>
         <input
           name="displayName"
@@ -62,16 +62,16 @@ export function IndependentForm({
           defaultValue={defaultName}
           minLength={2}
           maxLength={80}
-          className="w-full rounded-md border border-neutral-300 px-3 py-2"
+          className="field-input"
         />
       </label>
-      <label className="block space-y-1 text-sm">
+      <label className="field">
         <span>{t("category")}</span>
         <select
           name="category"
           required
           defaultValue="hair"
-          className="w-full rounded-md border border-neutral-300 px-3 py-2"
+          className="field-input"
         >
           {CATEGORIES.map((key) => (
             <option key={key} value={key}>
@@ -80,45 +80,45 @@ export function IndependentForm({
           ))}
         </select>
       </label>
-      <label className="block space-y-1 text-sm">
+      <label className="field">
         <span>{t("phone")}</span>
         <input
           name="phone"
           type="tel"
           autoComplete="tel"
-          className="w-full rounded-md border border-neutral-300 px-3 py-2"
+          className="field-input"
         />
       </label>
-      <label className="block space-y-1 text-sm">
+      <label className="field">
         <span>{t("bio")}</span>
         <textarea
           name="bio"
           rows={3}
           maxLength={2000}
-          className="w-full rounded-md border border-neutral-300 px-3 py-2"
+          className="field-input"
         />
       </label>
-      <label className="block space-y-1 text-sm">
+      <label className="field">
         <span>{t("address")}</span>
         <input
           name="addressText"
-          className="w-full rounded-md border border-neutral-300 px-3 py-2"
+          className="field-input"
         />
       </label>
       {state.error ? (
-        <p className="text-sm text-red-700" role="alert">
+        <p className="text-sm text-danger" role="alert">
           {t(`errors.${state.error}`)}
         </p>
       ) : null}
       <button
         type="submit"
         disabled={pending}
-        className="w-full rounded-md bg-neutral-900 px-3 py-2 text-sm text-white disabled:opacity-60"
+        className="btn btn-primary w-full"
       >
         {pending ? t("working") : t("independentSubmit")}
       </button>
-      <p className="text-center text-sm text-neutral-600">
-        <Link href="/onboarding" className="underline">
+      <p className="text-center text-sm text-muted">
+        <Link href="/onboarding" className="link">
           {t("back")}
         </Link>
       </p>

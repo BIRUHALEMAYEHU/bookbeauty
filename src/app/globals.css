@@ -1,18 +1,166 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
+/*
+ * Tilet: the visual direction chosen on 15 November 2026.
+ * White cotton pages, forest green for actions, and one woven band (the
+ * border of a habesha kemis) that marks public pages. Flat: lines, not boxes.
+ * Body text uses the phone's own font, so only the heading font is downloaded.
+ */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  --color-background: #ffffff;
+  --color-foreground: #15201b;
+  --color-ink: #15201b;
+  --color-muted: #55635c;
+  --color-line: #dde3df;
+  --color-line-strong: #9aa8a0;
+  --color-wash: #f3f6f4;
+  --color-primary: #0b6b4a;
+  --color-primary-dark: #08513a;
+  --color-primary-tint: #e7f2ed;
+  --color-thread-red: #c2274b;
+  --color-thread-gold: #d99a1c;
+  --color-danger: #a81c3c;
+  --color-danger-tint: #fbe9ee;
+  --color-warning-tint: #fbf1dc;
+
+  --radius-md: 8px;
+
+  --font-sans:
+    system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans Ethiopic", Nyala, Kefa, sans-serif;
+  --font-display: var(--font-young-serif), Georgia, "Noto Serif Ethiopic", serif;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-sans), system-ui, sans-serif;
+  background: var(--color-background);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+}
+
+:focus-visible {
+  outline: 3px solid var(--color-thread-gold);
+  outline-offset: 2px;
+}
+
+@layer components {
+  /* Headings */
+  .title,
+  .title-lg,
+  .title-sm {
+    font-family: var(--font-display);
+    font-weight: 400;
+    line-height: 1.15;
+  }
+  .title-lg {
+    font-size: 2rem;
+  }
+  .title {
+    font-size: 1.625rem;
+  }
+  .title-sm {
+    font-size: 1.1875rem;
+    line-height: 1.25;
+  }
+
+  /* The woven band. Drawn with gradients, so it costs no download. */
+  .band {
+    height: 14px;
+    flex: none;
+    background:
+      repeating-linear-gradient(
+          90deg,
+          var(--color-primary) 0 10px,
+          var(--color-thread-gold) 10px 14px,
+          var(--color-thread-red) 14px 24px,
+          var(--color-thread-gold) 24px 28px
+        )
+        top / 100% 6px no-repeat,
+      repeating-linear-gradient(90deg, var(--color-thread-red) 0 4px, transparent 4px 14px) center /
+        100% 2px no-repeat,
+      repeating-linear-gradient(
+          90deg,
+          var(--color-thread-red) 0 10px,
+          var(--color-thread-gold) 10px 14px,
+          var(--color-primary) 14px 24px,
+          var(--color-thread-gold) 24px 28px
+        )
+        bottom / 100% 6px no-repeat;
+  }
+
+  /* Buttons: tall enough for a thumb. */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 3rem;
+    padding: 0 1.125rem;
+    border-radius: var(--radius-md);
+    border: 1px solid transparent;
+    font-size: 1rem;
+    font-weight: 700;
+    text-align: center;
+    cursor: pointer;
+  }
+  .btn:disabled {
+    opacity: 0.6;
+    cursor: default;
+  }
+  .btn-primary {
+    background: var(--color-primary);
+    color: #ffffff;
+  }
+  .btn-primary:hover:not(:disabled) {
+    background: var(--color-primary-dark);
+  }
+  .btn-quiet {
+    background: #ffffff;
+    color: var(--color-ink);
+    border-color: var(--color-line-strong);
+  }
+  .btn-quiet:hover:not(:disabled) {
+    border-color: var(--color-ink);
+  }
+  .btn-small {
+    min-height: 2.5rem;
+    padding: 0 0.875rem;
+    font-size: 0.875rem;
+  }
+
+  /* Form fields. 16px text stops phones zooming in on focus. */
+  .field {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 600;
+  }
+  .field > * + * {
+    margin-top: 0.375rem;
+  }
+  .field > span:not(:first-child) {
+    display: block;
+    font-weight: 400;
+  }
+  .field-input {
+    display: block;
+    width: 100%;
+    min-height: 3rem;
+    padding: 0.625rem 0.875rem;
+    border: 1px solid var(--color-line-strong);
+    border-radius: var(--radius-md);
+    background: #ffffff;
+    color: var(--color-ink);
+    font-size: 1rem;
+    font-weight: 400;
+  }
+  .field-input:focus-visible {
+    border-color: var(--color-primary);
+  }
+
+  .link {
+    color: var(--color-primary);
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .link:hover {
+    color: var(--color-primary-dark);
+  }
 }

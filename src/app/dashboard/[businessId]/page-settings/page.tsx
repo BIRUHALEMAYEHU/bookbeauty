@@ -20,11 +20,11 @@ async function Settings({ params }: { params: Promise<{ businessId: string }> })
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-2">
         <div className="space-y-1">
-          <h1 className="text-2xl font-semibold tracking-tight">{t("title")}</h1>
-          <p className="text-sm text-neutral-600">{t("subtitle")}</p>
+          <h1 className="title">{t("title")}</h1>
+          <p className="text-sm text-muted">{t("subtitle")}</p>
         </div>
         {publicPath ? (
-          <a href={siteUrl(publicPath)} className="text-sm underline">
+          <a href={siteUrl(publicPath)} className="link text-sm">
             {t("view")}
           </a>
         ) : null}
@@ -38,7 +38,7 @@ export default function PageSettingsPage({
   params,
 }: PageProps<"/dashboard/[businessId]/page-settings">) {
   return (
-    <Suspense fallback={<p className="text-sm text-neutral-500">…</p>}>
+    <Suspense fallback={<p className="text-sm text-muted">…</p>}>
       <Settings params={params} />
     </Suspense>
   );

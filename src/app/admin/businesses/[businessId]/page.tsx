@@ -9,7 +9,7 @@ import { moveToFreeAction, recordPaymentAction } from "@/modules/platform/admin-
 import { PlanLabel } from "../../plan-label";
 import { requireAdmin } from "../../require-admin";
 
-const input = "w-full rounded-md border border-neutral-300 px-3 py-2";
+const input = "field-input";
 const METHODS = ["telebirr", "bank_transfer", "cash", "other"] as const;
 
 export default async function AdminBusinessPage({
@@ -31,16 +31,16 @@ export default async function AdminBusinessPage({
     <div className="space-y-8">
       <div className="space-y-1">
         <p className="text-sm">
-          <Link href="/admin/businesses" className="underline">
+          <Link href="/admin/businesses" className="link">
             {t("business.back")}
           </Link>
         </p>
-        <h1 className="text-2xl font-semibold tracking-tight">{business.name}</h1>
-        <p className="text-sm text-neutral-600">
+        <h1 className="title">{business.name}</h1>
+        <p className="text-sm text-muted">
           {t("business.owner")}: {business.ownerName}
           {business.ownerEmail ? ` (${business.ownerEmail})` : ""}
         </p>
-        <p className="text-sm text-neutral-600">
+        <p className="text-sm text-muted">
           {t("business.currentPlan")}:{" "}
           <PlanLabel
             planKey={business.planKey}
@@ -52,7 +52,7 @@ export default async function AdminBusinessPage({
 
       {noticeKey ? (
         <p
-          className={`rounded-md px-3 py-2 text-sm ${good ? "bg-green-50 text-green-800" : "bg-red-50 text-red-700"}`}
+          className={`rounded-md px-3 py-2 text-sm ${good ? "bg-primary-tint text-primary-dark" : "bg-danger-tint text-danger"}`}
           role="status"
         >
           {t(`notices.${noticeKey}`)}
@@ -62,11 +62,11 @@ export default async function AdminBusinessPage({
       <section className="space-y-3">
         <h2 className="font-medium">{t("business.recordTitle")}</h2>
         {business.paidPlans.length === 0 ? (
-          <p className="text-sm text-neutral-600">{t("business.noPaidPlans")}</p>
+          <p className="text-sm text-muted">{t("business.noPaidPlans")}</p>
         ) : (
           <form action={recordPaymentAction.bind(null, business.id)} className="max-w-md space-y-3">
-            <p className="text-sm text-neutral-600">{t("business.recordHint")}</p>
-            <label className="block space-y-1 text-sm">
+            <p className="text-sm text-muted">{t("business.recordHint")}</p>
+            <label className="field">
               <span>{t("business.planField")}</span>
               <select name="planKey" required className={input}>
                 {business.paidPlans.map((plan) => (
@@ -76,11 +76,11 @@ export default async function AdminBusinessPage({
                 ))}
               </select>
             </label>
-            <label className="block space-y-1 text-sm">
+            <label className="field">
               <span>{t("business.amount")}</span>
               <input name="amount" type="number" min="1" step="0.01" required className={input} />
             </label>
-            <label className="block space-y-1 text-sm">
+            <label className="field">
               <span>{t("business.method")}</span>
               <select name="method" required className={input}>
                 {METHODS.map((method) => (
@@ -90,15 +90,15 @@ export default async function AdminBusinessPage({
                 ))}
               </select>
             </label>
-            <label className="block space-y-1 text-sm">
+            <label className="field">
               <span>{t("business.reference")}</span>
               <input name="reference" maxLength={200} className={input} />
             </label>
-            <label className="block space-y-1 text-sm">
+            <label className="field">
               <span>{t("business.paidUntil")}</span>
               <input name="paidUntil" type="date" required className={input} />
             </label>
-            <button type="submit" className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white">
+            <button type="submit" className="btn btn-primary">
               {t("business.record")}
             </button>
           </form>
@@ -108,20 +108,20 @@ export default async function AdminBusinessPage({
       {business.subscriptionStatus && business.subscriptionStatus !== "free" ? (
         <section className="space-y-2">
           <form action={moveToFreeAction.bind(null, business.id)}>
-            <button type="submit" className="rounded-md border border-neutral-300 px-4 py-2 text-sm">
+            <button type="submit" className="btn btn-quiet">
               {t("business.moveToFree")}
             </button>
           </form>
-          <p className="text-sm text-neutral-600">{t("business.moveToFreeHint")}</p>
+          <p className="text-sm text-muted">{t("business.moveToFreeHint")}</p>
         </section>
       ) : null}
 
       <section className="space-y-3">
         <h2 className="font-medium">{t("business.paymentsTitle")}</h2>
         {business.payments.length === 0 ? (
-          <p className="text-sm text-neutral-600">{t("business.noPayments")}</p>
+          <p className="text-sm text-muted">{t("business.noPayments")}</p>
         ) : (
-          <ul className="divide-y divide-neutral-200 rounded-md border border-neutral-200">
+          <ul className="divide-y divide-line rounded-md border border-line">
             {business.payments.map((payment) => (
               <li key={payment.id} className="space-y-1 px-4 py-3 text-sm">
                 <p className="font-medium">
@@ -133,8 +133,8 @@ export default async function AdminBusinessPage({
                       : "",
                   })}
                 </p>
-                {payment.reference ? <p className="text-neutral-700">{payment.reference}</p> : null}
-                <p className="text-neutral-500">
+                {payment.reference ? <p className="text-muted">{payment.reference}</p> : null}
+                <p className="text-muted">
                   {t("business.recordedBy", {
                     name: payment.recordedBy,
                     date: formatDateTime(payment.recordedAt),

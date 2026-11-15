@@ -9,19 +9,19 @@ async function HomeAuthLinks() {
 
   if (user) {
     return (
-      <a href={appUrl("/dashboard")} className="text-sm underline">
+      <a href={appUrl("/dashboard")} className="btn btn-primary">
         {t("dashboard")}
       </a>
     );
   }
 
   return (
-    <div className="flex gap-4 text-sm">
-      <a href={appUrl("/login")} className="underline">
-        {t("login")}
-      </a>
-      <a href={appUrl("/signup")} className="underline">
+    <div className="flex flex-wrap gap-3">
+      <a href={appUrl("/signup")} className="btn btn-primary">
         {t("signup")}
+      </a>
+      <a href={appUrl("/login")} className="btn btn-quiet">
+        {t("login")}
       </a>
     </div>
   );
@@ -31,13 +31,19 @@ export default async function HomePage() {
   const t = await getTranslations("home");
 
   return (
-    <main className="flex flex-1 flex-col items-center justify-center gap-3 p-8 text-center">
-      <h1 className="text-4xl font-semibold tracking-tight">{t("title")}</h1>
-      <p className="text-lg text-neutral-600">{t("tagline")}</p>
-      <p className="text-sm text-neutral-400">{t("comingSoon")}</p>
-      <Suspense fallback={null}>
-        <HomeAuthLinks />
-      </Suspense>
-    </main>
+    <>
+      <div className="band" aria-hidden="true" />
+      <main className="mx-auto flex w-full max-w-xl flex-1 flex-col justify-center gap-5 px-5 py-10">
+        <h1 className="title-lg text-5xl">{t("title")}</h1>
+        <p className="title-sm max-w-[28ch] text-2xl">{t("tagline")}</p>
+        <p className="text-sm text-muted">{t("comingSoon")}</p>
+        {/* Reserve the buttons' height so the page does not jump when they arrive. */}
+        <div className="min-h-12">
+          <Suspense fallback={null}>
+            <HomeAuthLinks />
+          </Suspense>
+        </div>
+      </main>
+    </>
   );
 }

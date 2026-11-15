@@ -14,7 +14,7 @@ export function ResetPasswordForm({ token }: { token: string }) {
   return (
     <form action={action} className="space-y-3">
       <input type="hidden" name="token" value={token} />
-      <label className="block space-y-1 text-sm">
+      <label className="field">
         <span>{t("newPassword")}</span>
         <input
           name="password"
@@ -22,15 +22,15 @@ export function ResetPasswordForm({ token }: { token: string }) {
           required
           minLength={8}
           autoComplete="new-password"
-          className="w-full rounded-md border border-neutral-300 px-3 py-2"
+          className="field-input"
         />
-        <span className="text-xs text-neutral-500">{t("passwordHint")}</span>
+        <span className="text-xs text-muted">{t("passwordHint")}</span>
       </label>
       {state.error ? (
-        <div className="space-y-1 text-sm text-red-700" role="alert">
+        <div className="space-y-1 text-sm text-danger" role="alert">
           <p>{t(`errors.${state.error}` as "errors.link_invalid")}</p>
           {state.error === "link_invalid" ? (
-            <Link href="/forgot-password" className="underline">
+            <Link href="/forgot-password" className="link">
               {t("requestNewLink")}
             </Link>
           ) : null}
@@ -39,7 +39,7 @@ export function ResetPasswordForm({ token }: { token: string }) {
       <button
         type="submit"
         disabled={pending}
-        className="w-full rounded-md bg-neutral-900 px-3 py-2 text-sm font-medium text-white disabled:opacity-60"
+        className="btn btn-primary w-full"
       >
         {pending ? t("working") : t("resetSubmit")}
       </button>

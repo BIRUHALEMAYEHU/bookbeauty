@@ -44,20 +44,23 @@ export default async function PublicPage({ params }: PageProps<"/[slug]">) {
   if (!result.page) notFound();
 
   return (
-    <main className="mx-auto w-full max-w-xl flex-1 space-y-8 px-4 py-8">
-      {result.kind === "profile" ? (
-        <ProfileView page={result.page as PublicProfilePage} />
-      ) : (
-        <BusinessView page={result.page as PublicBusinessPage} />
-      )}
-    </main>
+    <>
+      <div className="band" aria-hidden="true" />
+      <main className="mx-auto w-full max-w-xl flex-1 px-5 pb-10">
+        {result.kind === "profile" ? (
+          <ProfileView page={result.page as PublicProfilePage} />
+        ) : (
+          <BusinessView page={result.page as PublicBusinessPage} />
+        )}
+      </main>
+    </>
   );
 }
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="space-y-2">
-      <h2 className="text-sm font-medium uppercase tracking-wide text-neutral-500">{title}</h2>
+    <section className="space-y-2 border-t border-line py-5">
+      <h2 className="title-sm">{title}</h2>
       {children}
     </section>
   );
@@ -65,7 +68,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 
 function PhoneLink({ phone }: { phone: string }) {
   return (
-    <a href={`tel:${phone}`} className="underline">
+    <a href={`tel:${phone}`} className="link">
       {formatPhone(phone)}
     </a>
   );
@@ -77,9 +80,9 @@ async function BusinessView({ page }: { page: PublicBusinessPage }) {
 
   return (
     <>
-      <header className="space-y-1">
-        <h1 className="text-3xl font-semibold tracking-tight">{page.name}</h1>
-        <p className="text-neutral-600">{tCategory(page.category)}</p>
+      <header className="space-y-1.5 py-6">
+        <h1 className="title-lg">{page.name}</h1>
+        <p className="text-muted">{tCategory(page.category)}</p>
       </header>
 
       {page.about ? (
@@ -94,7 +97,7 @@ async function BusinessView({ page }: { page: PublicBusinessPage }) {
             <li key={location.name}>
               <span className="font-medium">{location.name}</span>
               {location.addressText ? (
-                <span className="text-neutral-600">{` · ${location.addressText}`}</span>
+                <span className="text-muted">{` · ${location.addressText}`}</span>
               ) : null}
             </li>
           ))}
@@ -114,7 +117,7 @@ async function BusinessView({ page }: { page: PublicBusinessPage }) {
               <li key={member.handle}>
                 <Link
                   href={`/@${member.handle}`}
-                  className="inline-block rounded-full border border-neutral-300 px-3 py-1 text-sm hover:border-neutral-500"
+                  className="inline-block rounded-md border border-line-strong px-3.5 py-2 text-sm font-semibold hover:border-ink"
                 >
                   {member.displayName}
                 </Link>
@@ -132,27 +135,27 @@ async function ProfileView({ page }: { page: PublicProfilePage }) {
 
   return (
     <>
-      <header className="space-y-1">
-        <h1 className="text-3xl font-semibold tracking-tight">{page.displayName}</h1>
-        <p className="text-neutral-600">@{page.handle}</p>
+      <header className="space-y-1.5 py-6">
+        <h1 className="title-lg">{page.displayName}</h1>
+        <p className="text-muted">@{page.handle}</p>
       </header>
 
-      {page.bio ? <p className="whitespace-pre-line">{page.bio}</p> : null}
+      {page.bio ? <p className="whitespace-pre-line pb-6">{page.bio}</p> : null}
 
       {page.places.length > 0 ? (
         <Section title={t("whereToBook", { name: page.displayName })}>
-          <ul className="space-y-3">
+          <ul className="divide-y divide-line">
             {page.places.map((place) => (
-              <li key={place.businessId} className="rounded-md border border-neutral-200 px-4 py-3">
+              <li key={place.businessId} className="py-3">
                 {place.kind === "salon" ? (
-                  <Link href={`/${place.slug}`} className="font-medium underline">
+                  <Link href={`/${place.slug}`} className="link">
                     {place.name}
                   </Link>
                 ) : (
                   <div className="space-y-1">
                     <p className="font-medium">{t("ownPractice")}</p>
                     {place.location?.addressText ? (
-                      <p className="text-sm text-neutral-600">{place.location.addressText}</p>
+                      <p className="text-sm text-muted">{place.location.addressText}</p>
                     ) : null}
                     {place.phone ? (
                       <p className="text-sm">

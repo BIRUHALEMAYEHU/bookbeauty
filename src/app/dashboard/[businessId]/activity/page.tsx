@@ -26,14 +26,14 @@ async function Activity({ params }: { params: Promise<{ businessId: string }> })
   return (
     <div className="space-y-6">
       <div className="space-y-1">
-        <h1 className="text-2xl font-semibold tracking-tight">{t("title")}</h1>
-        <p className="text-sm text-neutral-600">{t("subtitle")}</p>
+        <h1 className="title">{t("title")}</h1>
+        <p className="text-sm text-muted">{t("subtitle")}</p>
       </div>
 
       {rows.length === 0 ? (
-        <p className="text-sm text-neutral-600">{t("empty")}</p>
+        <p className="text-sm text-muted">{t("empty")}</p>
       ) : (
-        <ol className="divide-y divide-neutral-200 rounded-md border border-neutral-200">
+        <ol className="divide-y divide-line rounded-md border border-line">
           {rows.map((row) => {
             // Dots mean nesting in the text file, so "business.created" is stored as "business_created".
             const actionKey = `actions.${row.action.replaceAll(".", "_")}`;
@@ -43,8 +43,8 @@ async function Activity({ params }: { params: Promise<{ businessId: string }> })
             return (
               <li key={row.id} className="space-y-1 px-4 py-3">
                 <p className="font-medium">{t.has(actionKey) ? t(actionKey) : row.action}</p>
-                {fields ? <p className="text-sm text-neutral-700">{t("changed", { fields })}</p> : null}
-                <p className="text-sm text-neutral-500">
+                {fields ? <p className="text-sm text-muted">{t("changed", { fields })}</p> : null}
+                <p className="text-sm text-muted">
                   {formatDateTime(row.createdAt, business.timeZone)}{" "}
                   {t("by", { name: row.actorName ?? t("bySystem") })}
                 </p>
@@ -59,7 +59,7 @@ async function Activity({ params }: { params: Promise<{ businessId: string }> })
 
 export default function ActivityPage({ params }: PageProps<"/dashboard/[businessId]/activity">) {
   return (
-    <Suspense fallback={<p className="text-sm text-neutral-500">…</p>}>
+    <Suspense fallback={<p className="text-sm text-muted">…</p>}>
       <Activity params={params} />
     </Suspense>
   );

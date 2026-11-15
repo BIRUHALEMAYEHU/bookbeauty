@@ -44,8 +44,8 @@ async function AccountBody({
         <p
           className={`rounded-md px-3 py-2 text-sm ${
             notice === "link_invalid" || notice === "verification_rate_limited"
-              ? "bg-red-50 text-red-700"
-              : "bg-green-50 text-green-800"
+              ? "bg-danger-tint text-danger"
+              : "bg-primary-tint text-primary-dark"
           }`}
           role="status"
         >
@@ -53,38 +53,38 @@ async function AccountBody({
         </p>
       ) : null}
       {needsVerification ? (
-        <section className="space-y-2 rounded-md border border-amber-300 bg-amber-50 px-3 py-3 text-sm">
+        <section className="space-y-2 rounded-md border border-thread-gold bg-warning-tint px-3 py-3 text-sm">
           <h2 className="font-medium">{t("verifyEmailTitle")}</h2>
-          <p className="text-neutral-700">{t("verifyEmailBody", { email: user.email! })}</p>
+          <p className="text-muted">{t("verifyEmailBody", { email: user.email! })}</p>
           <form action={resendVerificationAction}>
-            <button type="submit" className="underline">
+            <button type="submit" className="link">
               {t("verifyEmailResend")}
             </button>
           </form>
         </section>
       ) : null}
       <div className="space-y-4">
-        <h1 className="text-2xl font-semibold tracking-tight">{t("title")}</h1>
+        <h1 className="title">{t("title")}</h1>
         <dl className="space-y-2 text-sm">
           <div>
-            <dt className="text-neutral-500">{t("displayName")}</dt>
+            <dt className="text-muted">{t("displayName")}</dt>
             <dd>{user.displayName}</dd>
           </div>
           <div>
-            <dt className="text-neutral-500">{t("email")}</dt>
+            <dt className="text-muted">{t("email")}</dt>
             <dd>{user.email ?? t("noEmail")}</dd>
           </div>
         </dl>
       </div>
 
       <section className="space-y-3">
-        <h2 className="text-sm font-medium text-neutral-500">{t("businesses")}</h2>
+        <h2 className="text-sm font-medium text-muted">{t("businesses")}</h2>
         {memberships.length === 0 ? (
           <div className="space-y-3">
-            <p className="text-sm text-neutral-600">{t("noBusinesses")}</p>
+            <p className="text-sm text-muted">{t("noBusinesses")}</p>
             <Link
               href="/onboarding"
-              className="inline-block rounded-md bg-neutral-900 px-3 py-2 text-sm text-white"
+              className="btn btn-primary"
             >
               {t("startOnboarding")}
             </Link>
@@ -94,11 +94,11 @@ async function AccountBody({
             {memberships.map(({ membership, business }) => (
               <li
                 key={membership.id}
-                className="flex items-center justify-between gap-3 rounded-md border border-neutral-200 px-3 py-2"
+                className="flex items-center justify-between gap-3 rounded-md border border-line px-3 py-2"
               >
                 <div>
                   <p className="font-medium">{business.name}</p>
-                <p className="text-neutral-600">
+                <p className="text-muted">
                   {business.kind === "independent"
                     ? t("kindIndependent")
                     : t("kindSalon")}
@@ -106,7 +106,7 @@ async function AccountBody({
                   {t("role")}: {tRoles(membership.role)}
                 </p>
                 </div>
-                <Link href={`/dashboard/${business.id}`} className="underline">
+                <Link href={`/dashboard/${business.id}`} className="link">
                   {t("openDashboard")}
                 </Link>
               </li>
@@ -117,7 +117,7 @@ async function AccountBody({
 
       {admin ? (
         <p className="text-sm">
-          <a href={adminUrl("/admin")} className="underline">
+          <a href={adminUrl("/admin")} className="link">
             {t("adminLink")}
           </a>
         </p>
@@ -126,7 +126,7 @@ async function AccountBody({
       <form action={logoutAction}>
         <button
           type="submit"
-          className="rounded-md border border-neutral-300 px-3 py-2 text-sm"
+          className="btn btn-quiet btn-small"
         >
           {t("logout")}
         </button>
@@ -142,7 +142,7 @@ export default function AccountPage({
 }) {
   return (
     <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center p-6">
-      <Suspense fallback={<p className="text-sm text-neutral-500">…</p>}>
+      <Suspense fallback={<p className="text-sm text-muted">…</p>}>
         <AccountBody searchParams={searchParams} />
       </Suspense>
     </main>

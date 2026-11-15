@@ -14,21 +14,21 @@ export default async function AdminUsersPage({ searchParams }: PageProps<"/admin
 
   return (
     <div className="space-y-4">
-      <h1 className="text-2xl font-semibold tracking-tight">{t("users.title")}</h1>
+      <h1 className="title">{t("users.title")}</h1>
       {noticeKey ? (
         <p
-          className={`rounded-md px-3 py-2 text-sm ${good ? "bg-green-50 text-green-800" : "bg-red-50 text-red-700"}`}
+          className={`rounded-md px-3 py-2 text-sm ${good ? "bg-primary-tint text-primary-dark" : "bg-danger-tint text-danger"}`}
           role="status"
         >
           {t(`notices.${noticeKey}`)}
         </p>
       ) : null}
       {rows.length === 0 ? (
-        <p className="text-sm text-neutral-600">{t("users.empty")}</p>
+        <p className="text-sm text-muted">{t("users.empty")}</p>
       ) : (
-        <div className="overflow-x-auto rounded-md border border-neutral-200">
+        <div className="overflow-x-auto rounded-md border border-line">
           <table className="w-full text-left text-sm">
-            <thead className="border-b border-neutral-200 text-neutral-600">
+            <thead className="border-b border-line text-muted">
               <tr>
                 <th className="px-3 py-2 font-medium">{t("users.name")}</th>
                 <th className="px-3 py-2 font-medium">{t("users.email")}</th>
@@ -37,33 +37,33 @@ export default async function AdminUsersPage({ searchParams }: PageProps<"/admin
                 <th className="px-3 py-2" />
               </tr>
             </thead>
-            <tbody className="divide-y divide-neutral-200">
+            <tbody className="divide-y divide-line">
               {rows.map((row) => (
                 <tr key={row.id}>
                   <td className="px-3 py-2 font-medium">{row.displayName}</td>
                   <td className="px-3 py-2">
                     {row.email ?? t("users.noEmail")}
                     {row.email ? (
-                      <span className="block text-neutral-500">
+                      <span className="block text-muted">
                         {row.emailVerifiedAt ? t("users.verified") : t("users.unverified")}
                       </span>
                     ) : null}
                   </td>
                   <td className="px-3 py-2">
                     {row.status === "active" ? t("users.active") : t("users.suspended")}
-                    {row.isAdmin ? <span className="block text-neutral-500">{t("users.admin")}</span> : null}
+                    {row.isAdmin ? <span className="block text-muted">{t("users.admin")}</span> : null}
                   </td>
                   <td className="px-3 py-2 whitespace-nowrap">{formatDate(row.createdAt)}</td>
                   <td className="px-3 py-2 text-right">
                     {row.status === "suspended" ? (
                       <form action={setUserStatusAction.bind(null, row.id, "active")}>
-                        <button type="submit" className="underline">
+                        <button type="submit" className="link">
                           {t("users.restore")}
                         </button>
                       </form>
                     ) : row.isAdmin || row.id === admin.id ? null : (
                       <form action={setUserStatusAction.bind(null, row.id, "suspended")}>
-                        <button type="submit" className="underline">
+                        <button type="submit" className="link">
                           {t("users.suspend")}
                         </button>
                       </form>
@@ -76,7 +76,7 @@ export default async function AdminUsersPage({ searchParams }: PageProps<"/admin
         </div>
       )}
       {rows.length >= 200 ? (
-        <p className="text-sm text-neutral-500">{t("limitNote", { count: rows.length })}</p>
+        <p className="text-sm text-muted">{t("limitNote", { count: rows.length })}</p>
       ) : null}
     </div>
   );
