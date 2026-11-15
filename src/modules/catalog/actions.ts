@@ -14,7 +14,19 @@ import {
   type ServiceInput,
 } from "./services";
 
-export type ServiceFormState = { error?: string };
+/** On an error the form gets back what was typed, so one mistake does not wipe the rest. */
+export type ServiceFormState = {
+  error?: string;
+  values?: {
+    name: string;
+    description: string;
+    durationMinutes: number;
+    bufferMinutes: number;
+    priceStudio: string;
+    priceClientPlace: string;
+    providerMembershipIds: string[];
+  };
+};
 
 async function scopeFor(businessId: string) {
   const user = await getSessionUser();
@@ -41,13 +53,22 @@ export async function saveServiceAction(
   _prev: ServiceFormState,
   formData: FormData,
 ): Promise<ServiceFormState> {
+  const values = {
+    name: String(formData.get("name") ?? ""),
+    description: String(formData.get("description") ?? ""),
+    durationMinutes: Number(formData.get("durationMinutes")),
+    bufferMinutes: Number(formData.get("bufferMinutes")),
+    priceStudio: String(formData.get("priceStudio") ?? ""),
+    priceClientPlace: String(formData.get("priceClientPlace") ?? ""),
+    providerMembershipIds: formData.getAll("providers").map(String),
+  };
   const scope = await scopeFor(businessId);
-  if (!scope) return { error: "forbidden" };
+  if (!scope) return { error: "forbidden", values };
 
   const priceStudio = readPrice(formData, "priceStudio");
   const priceClientPlace = readPrice(formData, "priceClientPlace");
   if (priceStudio === "invalid" || priceClientPlace === "invalid") {
-    return { error: "price_invalid" };
+    return { error: "price_invalid", values };
   }
 
   const input: ServiceInput = {
@@ -64,7 +85,7 @@ export async function saveServiceAction(
   const result = serviceId
     ? await updateService(scope, serviceId, input)
     : await createService(scope, input);
-  if (!result.ok) return { error: result.error };
+  if (!result.ok) return { error: result.error, values };
 
   refreshPublicPages(businessId);
   redirect(`/dashboard/${businessId}/services`);

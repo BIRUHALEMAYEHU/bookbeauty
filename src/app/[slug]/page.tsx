@@ -88,7 +88,7 @@ async function BusinessView({ page }: { page: PublicBusinessPage }) {
 
       {page.services.length > 0 ? (
         <Section title={t("services")}>
-          <ServiceList services={page.services} />
+          <ServiceList services={page.services} bookPath={`/${page.slug}/book`} />
         </Section>
       ) : null}
 
@@ -169,7 +169,9 @@ async function ProfileView({ page }: { page: PublicProfilePage }) {
                         <PhoneLink phone={place.phone} />
                       </p>
                     ) : null}
-                    {place.services.length > 0 ? <ServiceList services={place.services} /> : null}
+                    {place.services.length > 0 ? (
+                      <ServiceList services={place.services} bookPath={`/@${page.handle}/book`} />
+                    ) : null}
                   </div>
                 )}
               </li>

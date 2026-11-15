@@ -129,6 +129,16 @@ export function minuteOfDay(instant: Date, timeZone = DEFAULT_TIME_ZONE) {
   return local.getUTCHours() * 60 + local.getUTCMinutes();
 }
 
+/** A calendar day in two short pieces, for a row of day buttons: "Tue" and "27 Oct". */
+export function formatShortDay(date: LocalDate) {
+  const { year, month, day } = dateParts(date);
+  const noon = new Date(Date.UTC(year, month - 1, day, 12));
+  return {
+    weekday: formatter("UTC", { weekday: "short" }).format(noon),
+    day: normaliseSpaces(formatter("UTC", { day: "numeric", month: "short" }).format(noon)),
+  };
+}
+
 /** 0 is Sunday, 6 is Saturday. */
 export function weekdayOf(date: LocalDate) {
   const { year, month, day } = dateParts(date);

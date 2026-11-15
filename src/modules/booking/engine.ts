@@ -1,5 +1,6 @@
 import "server-only";
 import { and, asc, desc, eq, gt, inArray, isNull, lt, or, sql } from "drizzle-orm";
+import { alias } from "drizzle-orm/pg-core";
 import { z } from "zod";
 import { db, type DbExecutor } from "@/db/client";
 import {
@@ -474,7 +475,12 @@ export type GuestBooking = {
   holdExpiresAt: Date | null;
   cancelledBy: Booking["cancelledBy"];
   canCancel: boolean;
+  /** The business's public page, to book again: "/slug" or "/@handle". */
+  publicPath: string | null;
 };
+
+/** The owner's profile, for a solo practice's address: a second look at the same table. */
+const ownerProfiles = alias(professionalProfiles, "owner_profiles");
 
 async function findByToken(token: string, executor: DbExecutor = db) {
   if (!/^[0-9a-f]{64}$/.test(token)) return null;
@@ -484,6 +490,8 @@ async function findByToken(token: string, executor: DbExecutor = db) {
       appointment: appointments,
       businessName: businesses.name,
       businessKind: businesses.kind,
+      slug: businesses.slug,
+      ownerHandle: ownerProfiles.handle,
       timeZone: businesses.timeZone,
       approvalMode: businesses.approvalMode,
       serviceName: services.name,
@@ -495,6 +503,7 @@ async function findByToken(token: string, executor: DbExecutor = db) {
     .innerJoin(businesses, eq(businesses.id, bookings.businessId))
     .innerJoin(services, eq(services.id, appointments.serviceId))
     .leftJoin(professionalProfiles, eq(professionalProfiles.userId, appointments.professionalUserId))
+    .leftJoin(ownerProfiles, eq(ownerProfiles.userId, businesses.ownerUserId))
     .where(eq(bookings.manageTokenHash, hashToken(token)))
     .orderBy(asc(appointments.startsAt))
     .limit(1);
@@ -534,6 +543,14 @@ export async function getGuestBooking(token: string, now = new Date()): Promise<
     holdExpiresAt: booking.holdExpiresAt,
     cancelledBy: booking.cancelledBy,
     canCancel: guestCanCancel(status, appointment.startsAt, now),
+    publicPath:
+      row.businessKind === "salon"
+        ? row.slug
+          ? `/${row.slug}`
+          : null
+        : row.ownerHandle
+          ? `/@${row.ownerHandle}`
+          : null,
   };
 }
 

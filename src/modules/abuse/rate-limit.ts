@@ -90,4 +90,21 @@ export const RATE_LIMITS = {
     limit: 3,
     windowSeconds: 60 * 60,
   }),
+  // Each hold keeps a time from other customers for ten minutes, so they are rationed.
+  bookingHoldIp: (ip: string) => ({
+    key: `booking-hold:ip:${ip || "unknown"}`,
+    limit: 15,
+    windowSeconds: 10 * 60,
+  }),
+  bookingSubmitIp: (ip: string) => ({
+    key: `booking-submit:ip:${ip || "unknown"}`,
+    limit: 10,
+    windowSeconds: 60 * 60,
+  }),
+  /** Pass "businessId:phone": one number cannot flood one business with bookings. */
+  bookingSubmitPhone: (businessAndPhone: string) => ({
+    key: `booking-submit:phone:${businessAndPhone}`,
+    limit: 5,
+    windowSeconds: 24 * 60 * 60,
+  }),
 } as const satisfies Record<string, (id: string) => RateLimitPolicy>;

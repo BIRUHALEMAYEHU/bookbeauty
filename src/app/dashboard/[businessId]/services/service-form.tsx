@@ -48,6 +48,8 @@ export function ServiceForm({
     initial,
   );
   const [locationType, setLocationType] = useState<LocationType>(values.locationType);
+  // The browser clears a form after each try; this puts back what was typed.
+  const shown = { ...values, ...state.values };
 
   const places: { value: LocationType; label: string }[] = [
     { value: "studio", label: solo ? t("locationStudioSolo") : t("locationStudio") },
@@ -64,7 +66,7 @@ export function ServiceForm({
           required
           minLength={2}
           maxLength={80}
-          defaultValue={values.name}
+          defaultValue={shown.name}
           placeholder={t("namePlaceholder")}
           className="field-input"
         />
@@ -73,7 +75,7 @@ export function ServiceForm({
       <div className="grid grid-cols-2 gap-3">
         <label className="field">
           <span>{t("duration")}</span>
-          <select name="durationMinutes" defaultValue={values.durationMinutes} className="field-input">
+          <select name="durationMinutes" defaultValue={shown.durationMinutes} className="field-input">
             {durations.map((choice) => (
               <option key={choice.value} value={choice.value}>
                 {choice.label}
@@ -83,7 +85,7 @@ export function ServiceForm({
         </label>
         <label className="field">
           <span>{t("buffer")}</span>
-          <select name="bufferMinutes" defaultValue={values.bufferMinutes} className="field-input">
+          <select name="bufferMinutes" defaultValue={shown.bufferMinutes} className="field-input">
             {buffers.map((choice) => (
               <option key={choice.value} value={choice.value}>
                 {choice.label}
@@ -120,7 +122,7 @@ export function ServiceForm({
             required
             inputMode="decimal"
             maxLength={12}
-            defaultValue={values.priceStudio}
+            defaultValue={shown.priceStudio}
             className="field-input"
           />
         </label>
@@ -134,7 +136,7 @@ export function ServiceForm({
             required
             inputMode="decimal"
             maxLength={12}
-            defaultValue={values.priceClientPlace}
+            defaultValue={shown.priceClientPlace}
             className="field-input"
           />
           <span className="text-xs text-muted">{t("priceClientPlaceHint")}</span>
@@ -155,7 +157,7 @@ export function ServiceForm({
                       type="checkbox"
                       name="providers"
                       value={provider.membershipId}
-                      defaultChecked={values.providerMembershipIds.includes(provider.membershipId)}
+                      defaultChecked={shown.providerMembershipIds.includes(provider.membershipId)}
                     />
                     <span>{provider.displayName}</span>
                   </label>
@@ -173,7 +175,7 @@ export function ServiceForm({
           name="description"
           rows={3}
           maxLength={500}
-          defaultValue={values.description}
+          defaultValue={shown.description}
           className="field-input"
         />
         <span className="text-xs text-muted">{t("descriptionHint")}</span>

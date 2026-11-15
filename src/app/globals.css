@@ -172,6 +172,7 @@ body {
     width: 1.125rem;
     height: 1.125rem;
   }
+  .choice[aria-current="true"],
   .choice:has(input:checked) {
     border-color: var(--color-primary);
     background: var(--color-primary-tint);
@@ -180,6 +181,32 @@ body {
   .choice:has(input:focus-visible) {
     outline: 3px solid var(--color-thread-gold);
     outline-offset: 2px;
+  }
+
+  /* One day in the row of days on the booking page. */
+  .day-chip {
+    display: flex;
+    flex: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-width: 4.25rem;
+    min-height: 3.5rem;
+    padding: 0.25rem 0.5rem;
+    border: 1px solid var(--color-line-strong);
+    border-radius: var(--radius-md);
+    white-space: nowrap;
+  }
+  .day-chip-empty {
+    border-color: var(--color-line);
+    color: var(--color-muted);
+    text-decoration: line-through;
+  }
+  .day-chip[aria-current="true"] {
+    border-color: var(--color-primary);
+    background: var(--color-primary);
+    color: #ffffff;
+    text-decoration: none;
   }
 
   .link {
