@@ -1,7 +1,7 @@
 import "server-only";
 import { notFound, redirect } from "next/navigation";
 import { cache } from "react";
-import { getSessionUser } from "@/modules/identity/session";
+import { adminAreaIsHere, getSessionUser } from "@/modules/identity/session";
 import { isPlatformAdmin } from "@/modules/platform/admins";
 
 /**
@@ -9,6 +9,7 @@ import { isPlatformAdmin } from "@/modules/platform/admins";
  * admin area does not reveal that it exists.
  */
 export const requireAdmin = cache(async () => {
+  if (!(await adminAreaIsHere())) notFound();
   const user = await getSessionUser();
   if (!user) redirect("/login");
   if (!(await isPlatformAdmin(user.id))) notFound();

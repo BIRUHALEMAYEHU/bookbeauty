@@ -1,27 +1,32 @@
 import "server-only";
 import { Google, generateCodeVerifier, generateState } from "arctic";
 import { cookies } from "next/headers";
-import { env, googleEnabled } from "@/env";
+import { env, googleEnabled, hosts } from "@/env";
 import { resolveGoogleAccount, type GoogleProfile } from "./accounts";
 import { createOAuthState, verifyOAuthState } from "./oauth-state";
-import { createSession } from "./session";
+import { createSession, currentAudience } from "./session";
 
 const CODE_VERIFIER_COOKIE = "book_google_cv";
 const STATE_COOKIE = "book_google_state";
 
-function googleClient() {
+/** Google returns the person to the address she started from: the app, or the admin area. */
+export async function loginOrigin() {
+  return (await currentAudience()) === "admin" ? hosts.admin : hosts.app;
+}
+
+async function googleClient() {
   if (!googleEnabled()) {
     throw new Error("Google login is not configured");
   }
   return new Google(
     env.GOOGLE_CLIENT_ID!,
     env.GOOGLE_CLIENT_SECRET!,
-    `${env.APP_URL}/api/auth/google/callback`,
+    `${await loginOrigin()}/api/auth/google/callback`,
   );
 }
 
 export async function startGoogleLogin() {
-  const google = googleClient();
+  const google = await googleClient();
   const state = createOAuthState(generateState());
   const codeVerifier = generateCodeVerifier();
   const url = google.createAuthorizationURL(state, codeVerifier, [
@@ -60,7 +65,7 @@ export async function finishGoogleLogin(
   }
 
   try {
-    const google = googleClient();
+    const google = await googleClient();
     const tokens = await google.validateAuthorizationCode(code, codeVerifier);
     const accessToken = tokens.accessToken();
 
@@ -76,7 +81,7 @@ export async function finishGoogleLogin(
     const account = await resolveGoogleAccount(profile);
     if (!account.ok) return { ok: false, error: "oauth_failed" };
 
-    await createSession(account.userId, meta);
+    if (!(await createSession(account.userId, meta))) return { ok: false, error: "oauth_failed" };
     return { ok: true };
   } catch {
     return { ok: false, error: "oauth_failed" };

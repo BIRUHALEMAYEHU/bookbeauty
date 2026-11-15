@@ -32,9 +32,15 @@ services:
           property: connectionString
       - key: SESSION_SECRET
         generateValue: true
-      # Change this if Render gives the service a different address.
+      # The three addresses (src/lib/hosts.ts). APP_URL serves login and the
+      # dashboard. SITE_URL (public pages) and ADMIN_URL (admin area) default
+      # to APP_URL; set them in the dashboard once the domains point here.
       - key: APP_URL
         value: https://bookbeauty.onrender.com
+      - key: SITE_URL
+        sync: false
+      - key: ADMIN_URL
+        sync: false
       # Comma-separated emails that become platform administrators once verified.
       - key: PLATFORM_ADMIN_EMAILS
         sync: false

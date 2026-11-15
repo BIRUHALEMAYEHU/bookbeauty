@@ -1,12 +1,13 @@
 "use server";
 
 import { notFound, redirect } from "next/navigation";
-import { getSessionUser } from "@/modules/identity/session";
+import { adminAreaIsHere, getSessionUser } from "@/modules/identity/session";
 import { moveBusinessToFreePlan, recordSubscriptionPayment, setUserStatus } from "./admin";
 import { isPlatformAdmin } from "./admins";
 
 /** Every admin action re-checks the caller; hiding the screens is not protection. */
 async function requireAdmin() {
+  if (!(await adminAreaIsHere())) notFound();
   const user = await getSessionUser();
   if (!user) redirect("/login");
   if (!(await isPlatformAdmin(user.id))) notFound();

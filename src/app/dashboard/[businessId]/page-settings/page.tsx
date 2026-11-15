@@ -1,7 +1,7 @@
-import Link from "next/link";
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
+import { siteUrl } from "@/env";
 import { getBusinessPageSettings } from "@/modules/businesses/page-settings";
 import { listHats } from "@/modules/businesses/queries";
 import { currentScope } from "../current-scope";
@@ -24,9 +24,9 @@ async function Settings({ params }: { params: Promise<{ businessId: string }> })
           <p className="text-sm text-neutral-600">{t("subtitle")}</p>
         </div>
         {publicPath ? (
-          <Link href={publicPath} className="text-sm underline">
+          <a href={siteUrl(publicPath)} className="text-sm underline">
             {t("view")}
-          </Link>
+          </a>
         ) : null}
       </div>
       <PageSettingsForm businessId={businessId} values={values} />

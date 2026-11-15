@@ -1,4 +1,6 @@
 import { getTranslations } from "next-intl/server";
+import { redirect } from "next/navigation";
+import { getSessionUser } from "@/modules/identity/session";
 import { SignupForm } from "./signup-form";
 import { googleEnabled, telegramEnabled } from "@/env";
 import { env } from "@/env";
@@ -7,6 +9,8 @@ import { turnstileSiteKey } from "@/modules/abuse/turnstile";
 export const instant = false;
 
 export default async function SignupPage() {
+  // Someone already logged in has no use for this page.
+  if (await getSessionUser()) redirect("/dashboard");
   const t = await getTranslations("auth");
 
   return (

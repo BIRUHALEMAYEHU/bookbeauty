@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { getTranslations } from "next-intl/server";
 import { listHats } from "@/modules/businesses/queries";
-import { env } from "@/env";
+import { siteUrl } from "@/env";
 import { currentScope } from "./current-scope";
 
 async function Overview({ params }: { params: Promise<{ businessId: string }> }) {
@@ -12,7 +12,7 @@ async function Overview({ params }: { params: Promise<{ businessId: string }> })
   const tRoles = await getTranslations("roles");
 
   const hat = (await listHats(user.id)).find((h) => h.businessId === businessId);
-  const bookingLink = hat?.publicPath ? `${env.APP_URL}${hat.publicPath}` : null;
+  const bookingLink = hat?.publicPath ? siteUrl(hat.publicPath) : null;
 
   return (
     <div className="space-y-6">
@@ -34,9 +34,9 @@ async function Overview({ params }: { params: Promise<{ businessId: string }> })
             </p>
             <p className="text-sm text-neutral-600">{t("bookingLinkHint")}</p>
             <p className="flex gap-4 text-sm">
-              <Link href={hat!.publicPath!} className="underline">
+              <a href={bookingLink} className="underline">
                 {t("viewPage")}
-              </Link>
+              </a>
               {scope.can("settings.manage") ? (
                 <Link href={`/dashboard/${businessId}/page-settings`} className="underline">
                   {t("editPage")}

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { getTranslations } from "next-intl/server";
 import { redirect } from "next/navigation";
+import { adminUrl } from "@/env";
 import { listMembershipsForUser } from "@/modules/businesses/queries";
 import { logoutAction, resendVerificationAction } from "@/modules/identity/actions";
 import { getSessionUser } from "@/modules/identity/session";
@@ -116,9 +117,9 @@ async function AccountBody({
 
       {admin ? (
         <p className="text-sm">
-          <Link href="/admin" className="underline">
+          <a href={adminUrl("/admin")} className="underline">
             {t("adminLink")}
-          </Link>
+          </a>
         </p>
       ) : null}
 

@@ -56,7 +56,7 @@ export async function signupWithEmail(
       console.error("Could not send verification email", error);
     });
 
-    await createSession(userId, meta);
+    if (!(await createSession(userId, meta))) return { ok: false, error: "invalid_input" };
     return { ok: true };
   } catch (error) {
     if (isUniqueViolation(error)) return { ok: false, error: "email_taken" };
@@ -90,7 +90,8 @@ export async function loginWithEmail(
   const valid = await verifyPassword(user.passwordHash, password);
   if (!valid) return { ok: false, error: "invalid_credentials" };
 
-  await createSession(user.id, meta);
+  // False when a non-administrator tries the admin address: same answer as a wrong password.
+  if (!(await createSession(user.id, meta))) return { ok: false, error: "invalid_credentials" };
   return { ok: true };
 }
 

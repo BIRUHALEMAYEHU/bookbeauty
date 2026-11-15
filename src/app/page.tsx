@@ -1,6 +1,6 @@
-import Link from "next/link";
 import { Suspense } from "react";
 import { getTranslations } from "next-intl/server";
+import { appUrl } from "@/env";
 import { getSessionUser } from "@/modules/identity/session";
 
 async function HomeAuthLinks() {
@@ -9,20 +9,20 @@ async function HomeAuthLinks() {
 
   if (user) {
     return (
-      <Link href="/dashboard" className="text-sm underline">
+      <a href={appUrl("/dashboard")} className="text-sm underline">
         {t("dashboard")}
-      </Link>
+      </a>
     );
   }
 
   return (
     <div className="flex gap-4 text-sm">
-      <Link href="/login" className="underline">
+      <a href={appUrl("/login")} className="underline">
         {t("login")}
-      </Link>
-      <Link href="/signup" className="underline">
+      </a>
+      <a href={appUrl("/signup")} className="underline">
         {t("signup")}
-      </Link>
+      </a>
     </div>
   );
 }

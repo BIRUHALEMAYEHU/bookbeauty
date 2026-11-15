@@ -26,6 +26,8 @@ export default defineConfig({
       APP_URL: process.env.APP_URL ?? "http://localhost:3000",
       // Tests never use real outside services, even when .env has their keys.
       PLATFORM_ADMIN_EMAILS: "",
+      SITE_URL: "",
+      ADMIN_URL: "",
       RESEND_API_KEY: "",
       TURNSTILE_SITE_KEY: "",
       TURNSTILE_SECRET_KEY: "",

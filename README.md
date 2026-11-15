@@ -51,3 +51,7 @@ Google and Telegram buttons appear only when you fill the matching variables in 
 4. Each deploy runs `npm run db:deploy` (pending migrations) before starting. New commits deploy only after the GitHub checks pass.
 
 Email (`RESEND_API_KEY`, `EMAIL_FROM`), bot protection, Google and Telegram keys are entered in the Render dashboard. Without Resend, signup works but password reset emails cannot be sent.
+
+### Addresses
+
+Set `SITE_URL` (main domain, public pages), `APP_URL` (login and dashboard) and `ADMIN_URL` (admin area) to three addresses that all point at this service, for example `https://example.com`, `https://app.example.com` and `https://admin.example.com`. Left unset, `SITE_URL` and `ADMIN_URL` default to `APP_URL` and everything is served from one address. Rebuild after changing them. Each address needs a Google return address (`<address>/api/auth/google/callback`) and a Turnstile hostname; the Telegram bot's website is the app address.

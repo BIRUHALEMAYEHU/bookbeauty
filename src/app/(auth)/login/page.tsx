@@ -1,4 +1,6 @@
 import { getTranslations } from "next-intl/server";
+import { redirect } from "next/navigation";
+import { getSessionUser } from "@/modules/identity/session";
 import { LoginForm } from "./login-form";
 import { googleEnabled, telegramEnabled } from "@/env";
 import { env } from "@/env";
@@ -11,6 +13,8 @@ export default async function LoginPage({
 }: {
   searchParams: Promise<{ error?: string; notice?: string }>;
 }) {
+  // Someone already logged in has no use for this page.
+  if (await getSessionUser()) redirect("/dashboard");
   const t = await getTranslations("auth");
   const { error, notice } = await searchParams;
 

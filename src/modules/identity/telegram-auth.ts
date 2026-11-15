@@ -52,6 +52,6 @@ export async function loginWithTelegram(
     );
   }
 
-  await createSession(userId, meta);
+  if (!(await createSession(userId, meta))) return { ok: false, error: "invalid_payload" };
   return { ok: true };
 }

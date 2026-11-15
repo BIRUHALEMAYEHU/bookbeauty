@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { getTranslations } from "next-intl/server";
 import { redirect } from "next/navigation";
+import { adminUrl } from "@/env";
 import { listHats } from "@/modules/businesses/queries";
 import { getSessionUser } from "@/modules/identity/session";
 import { isPlatformAdmin } from "@/modules/platform/admins";
@@ -20,7 +21,7 @@ async function ChooseHat() {
   const hats = await listHats(user.id);
   if (hats.length === 0) {
     // A platform administrator runs the platform; she is not asked to set up a business.
-    redirect((await isPlatformAdmin(user.id)) ? "/admin" : "/onboarding");
+    redirect((await isPlatformAdmin(user.id)) ? adminUrl("/admin") : "/onboarding");
   }
   if (hats.length === 1) redirect(`/dashboard/${hats[0]!.businessId}`);
 

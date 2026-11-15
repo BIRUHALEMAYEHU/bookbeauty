@@ -68,6 +68,9 @@ export const authIdentities = pgTable(
   ],
 );
 
+/** Where a login is valid. An app login is never accepted by the admin area (D109). */
+export const sessionAudienceEnum = pgEnum("session_audience", ["app", "admin"]);
+
 export const sessions = pgTable(
   "sessions",
   {
@@ -77,6 +80,7 @@ export const sessions = pgTable(
       .references(() => users.id, { onDelete: "cascade" }),
     // SHA-256 of the cookie token. The raw token never lives in the database.
     tokenHash: text("token_hash").notNull(),
+    audience: sessionAudienceEnum("audience").notNull().default("app"),
     expiresAt: timestamp("expires_at", { withTimezone: true, mode: "date" }).notNull(),
     createdAt: timestamp("created_at", { withTimezone: true, mode: "date" })
       .notNull()

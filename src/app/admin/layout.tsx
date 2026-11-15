@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { getTranslations } from "next-intl/server";
+import { appUrl } from "@/env";
 import { requireAdmin } from "./require-admin";
 
 async function AdminHeader() {
@@ -20,9 +21,9 @@ async function AdminHeader() {
           <Link href="/admin/users" className="underline">
             {t("nav.users")}
           </Link>
-          <Link href="/account" className="underline">
+          <a href={appUrl("/account")} className="underline">
             {t("nav.exit")}
-          </Link>
+          </a>
         </nav>
       </div>
     </header>
