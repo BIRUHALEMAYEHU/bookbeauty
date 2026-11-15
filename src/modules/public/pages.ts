@@ -1,7 +1,13 @@
 import "server-only";
 import { and, asc, eq, inArray } from "drizzle-orm";
 import { db } from "@/db/client";
-import { businesses, locations, memberships, professionalProfiles } from "@/db/schema";
+import {
+  businesses,
+  locations,
+  memberships,
+  professionalProfiles,
+  services,
+} from "@/db/schema";
 import { normaliseSlug } from "@/lib/slug";
 
 /**
@@ -18,6 +24,18 @@ export type PublicLocation = {
   addressText: string | null;
 };
 
+/** A service as guests see it (F13). Prices are santim. */
+export type PublicService = {
+  id: string;
+  name: string;
+  description: string | null;
+  durationMinutes: number;
+  locationType: (typeof services.locationType.enumValues)[number];
+  priceStudio: number | null;
+  priceClientPlace: number | null;
+  currency: string;
+};
+
 export type PublicTeamMember = { displayName: string; handle: string };
 
 export type PublicBusinessPage = {
@@ -28,6 +46,7 @@ export type PublicBusinessPage = {
   about: string | null;
   phone: string | null;
   locations: PublicLocation[];
+  services: PublicService[];
   team: PublicTeamMember[];
 };
 
@@ -38,6 +57,7 @@ export type PublicPlace =
       businessId: string;
       location: PublicLocation | null;
       phone: string | null;
+      services: PublicService[];
     };
 
 export type PublicProfilePage = {
@@ -62,6 +82,24 @@ async function publicLocations(businessId: string): Promise<PublicLocation[]> {
     name: row.name,
     addressText: row.addressPublic ? row.addressText : null,
   }));
+}
+
+/** Active services in the order the business arranged them. */
+async function publicServices(businessId: string): Promise<PublicService[]> {
+  return db
+    .select({
+      id: services.id,
+      name: services.name,
+      description: services.description,
+      durationMinutes: services.durationMinutes,
+      locationType: services.locationType,
+      priceStudio: services.priceStudio,
+      priceClientPlace: services.priceClientPlace,
+      currency: services.currency,
+    })
+    .from(services)
+    .where(and(eq(services.businessId, businessId), eq(services.status, "active")))
+    .orderBy(asc(services.sortOrder), asc(services.createdAt));
 }
 
 /** A salon's page at /slug. Null when there is no such active salon. */
@@ -97,6 +135,7 @@ export async function loadPublicBusinessPage(rawSlug: string): Promise<PublicBus
     ...business,
     slug: business.slug,
     locations: await publicLocations(business.id),
+    services: await publicServices(business.id),
     team,
   };
 }
@@ -151,6 +190,7 @@ export async function loadPublicProfilePage(rawHandle: string): Promise<PublicPr
         businessId: row.businessId,
         location: location ?? null,
         phone: row.phone,
+        services: await publicServices(row.businessId),
       });
     }
   }

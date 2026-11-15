@@ -17,6 +17,8 @@ export default defineConfig({
   },
   test: {
     environment: "node",
+    // Database tests open a connection on their first query; slow machines need the room.
+    testTimeout: 20_000,
     include: ["src/**/*.test.ts"],
     globalSetup: ["src/db/test-setup.ts"],
     env: {

@@ -3,6 +3,11 @@
     "title": "Book",
     "description": "Booking, customers and growth for beauty businesses."
   },
+  "common": {
+    "durationHours": "{hours} hr",
+    "durationMinutes": "{minutes} min",
+    "durationHoursMinutes": "{hours} hr {minutes} min"
+  },
   "home": {
     "title": "Book",
     "tagline": "Get booked, manage your customers, and grow.",
@@ -182,6 +187,7 @@
     "bookingLinkMissing": "This place has no public address yet.",
     "nav": {
       "overview": "Overview",
+      "services": "Services",
       "page": "Public page",
       "activity": "Activity log"
     },
@@ -195,7 +201,10 @@
     "contact": "Contact",
     "team": "Our team",
     "whereToBook": "Where to book {name}",
-    "ownPractice": "Own practice"
+    "ownPractice": "Own practice",
+    "services": "Services",
+    "homeVisitOnly": "At your place",
+    "homeVisitAlso": "{price} at your place"
   },
   "pageSettings": {
     "title": "Your public page",
@@ -220,6 +229,58 @@
       "forbidden": "Only the owner can change the public page."
     }
   },
+  "services": {
+    "title": "Services",
+    "subtitle": "What customers can book, in the order they see it.",
+    "add": "Add a service",
+    "empty": "No services yet. Add the first one so customers know what you offer and what it costs.",
+    "edit": "Edit",
+    "moveUp": "Move {name} up",
+    "moveDown": "Move {name} down",
+    "performedBy": "Done by {names}",
+    "noProviders": "Nobody is set to do this yet. Customers will not be able to book it.",
+    "atStudio": "{price} at our place",
+    "atClientPlace": "{price} at the customer's place",
+    "bufferAfter": "{duration} free after",
+    "archivedTitle": "Archived services ({count})",
+    "archivedHint": "Archived services are hidden from customers. Past bookings keep them.",
+    "restore": "Restore",
+    "newTitle": "Add a service",
+    "editTitle": "Edit service",
+    "name": "Service name",
+    "namePlaceholder": "For example: Shuruba (braids)",
+    "description": "Description (optional)",
+    "descriptionHint": "What is included, or what the customer should know.",
+    "duration": "How long it takes",
+    "buffer": "Free time after",
+    "bufferHint": "Time to clean up or rest before the next customer. They do not see it.",
+    "bufferNone": "None",
+    "locationType": "Where you do it",
+    "locationStudio": "At our place",
+    "locationStudioSolo": "At my place",
+    "locationClientPlace": "At the customer's place",
+    "locationBoth": "Both",
+    "priceStudio": "Price at our place (ETB)",
+    "priceStudioSolo": "Price at my place (ETB)",
+    "priceClientPlace": "Price at the customer's place (ETB)",
+    "priceClientPlaceHint": "Include any travel fee.",
+    "providers": "Who does it",
+    "providersHint": "Customers can pick one of them or \"Any available\".",
+    "providersEmpty": "Nobody on the team has a professional profile yet. You can save the service now and choose who does it later.",
+    "save": "Save service",
+    "saving": "Saving…",
+    "cancel": "Cancel",
+    "archive": "Archive this service",
+    "archiveHint": "Hides it from customers. You can restore it later.",
+    "errors": {
+      "forbidden": "You do not have permission to change services here.",
+      "invalid_input": "Check the form and try again.",
+      "price_required": "Enter a price.",
+      "price_invalid": "Enter the price as a number, for example 800 or 1250.50.",
+      "provider_invalid": "One of the people chosen is no longer on the team. Reload the page and try again.",
+      "not_found": "This service no longer exists."
+    }
+  },
   "activity": {
     "title": "Activity log",
     "subtitle": "Who changed what, and when. Entries cannot be edited or deleted.",
@@ -231,7 +292,12 @@
       "business_page_updated": "Updated the public page",
       "professional_profile_created": "Created a professional profile",
       "subscription_payment_recorded": "A subscription payment was recorded",
-      "subscription_moved_to_free": "The plan was moved to Free"
+      "subscription_moved_to_free": "The plan was moved to Free",
+      "service_created": "Added a service",
+      "service_updated": "Changed a service",
+      "service_price_changed": "Changed a service's price",
+      "service_archived": "Archived a service",
+      "service_restored": "Restored a service"
     },
     "changed": "Changed: {fields}",
     "fields": {
@@ -242,7 +308,14 @@
       "addressText": "address",
       "addressPublic": "address visibility",
       "planKey": "plan",
-      "status": "status"
+      "status": "status",
+      "description": "description",
+      "durationMinutes": "duration",
+      "bufferMinutes": "free time after",
+      "locationType": "where it is done",
+      "priceStudio": "price",
+      "priceClientPlace": "price at the customer's place",
+      "providerMembershipIds": "who does it"
     }
   },
   "admin": {

@@ -1,8 +1,14 @@
 import "server-only";
-import { and, eq, type InferInsertModel, type SQL } from "drizzle-orm";
+import { and, asc, eq, inArray, type InferInsertModel, type SQL } from "drizzle-orm";
 import type { PgColumn, PgTable, PgUpdateSetSource } from "drizzle-orm/pg-core";
 import { db, type DbExecutor } from "@/db/client";
-import { businesses, type Business } from "@/db/schema";
+import {
+  businesses,
+  memberships,
+  professionalProfiles,
+  users,
+  type Business,
+} from "@/db/schema";
 import { logActivity, type LogActivityInput } from "@/modules/audit/log";
 import { resolveActor } from "@/modules/identity/actor";
 import {
@@ -15,6 +21,17 @@ import {
 
 /** A table whose rows belong to one business (it has a business_id column). */
 export type TenantTable = PgTable & { businessId: PgColumn };
+
+/** Someone working in the business, as staff screens list her. */
+export type ScopedMember = {
+  membershipId: string;
+  userId: string;
+  role: (typeof memberships.role.enumValues)[number];
+  /** Her professional name when she has a profile, otherwise her account name. */
+  displayName: string;
+  /** Only people with a professional profile serve customers (data-model Section 2). */
+  hasProfile: boolean;
+};
 
 type InsertValues<T extends TenantTable> = Omit<InferInsertModel<T>, "businessId">;
 
@@ -62,6 +79,35 @@ function scopedQueries(executor: DbExecutor, businessId: string, actorUserId: st
         .returning();
       if (!row) throw new Error("Business in scope no longer exists");
       return row;
+    },
+
+    /** People working in this business now (active, or working out notice), in joining order. */
+    async members(): Promise<ScopedMember[]> {
+      const rows = await executor
+        .select({
+          membershipId: memberships.id,
+          userId: memberships.userId,
+          role: memberships.role,
+          accountName: users.displayName,
+          professionalName: professionalProfiles.displayName,
+        })
+        .from(memberships)
+        .innerJoin(users, eq(users.id, memberships.userId))
+        .leftJoin(professionalProfiles, eq(professionalProfiles.userId, memberships.userId))
+        .where(
+          and(
+            eq(memberships.businessId, businessId),
+            inArray(memberships.status, ["active", "notice"]),
+          ),
+        )
+        .orderBy(asc(memberships.startedAt), asc(memberships.id));
+      return rows.map((row) => ({
+        membershipId: row.membershipId,
+        userId: row.userId,
+        role: row.role,
+        displayName: row.professionalName ?? row.accountName,
+        hasProfile: row.professionalName !== null,
+      }));
     },
 
     /** Rows of this business only, optionally narrowed further. */

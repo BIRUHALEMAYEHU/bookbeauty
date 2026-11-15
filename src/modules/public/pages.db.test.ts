@@ -51,6 +51,7 @@ describe("public business page", () => {
       about: "Hair and nails in Bole.",
       phone: "+251111234567",
       locations: [{ name: "Bole", addressText: "Bole Road, near Edna Mall" }],
+      services: [],
       team: [{ displayName: "Hana", handle }],
     });
   });
@@ -90,7 +91,7 @@ describe("public business page", () => {
     await createSalon(owner.id, { name: "Fields", slug, category: "hair" });
     const page = await loadPublicBusinessPage(slug);
     expect(Object.keys(page!).sort()).toEqual(
-      ["about", "category", "id", "locations", "name", "phone", "slug", "team"].sort(),
+      ["about", "category", "id", "locations", "name", "phone", "services", "slug", "team"].sort(),
     );
   });
 });
@@ -126,6 +127,7 @@ describe("public professional page", () => {
           // Solo practices hide their address unless she turns it on (D56).
           location: { name: "Home", addressText: null },
           phone: "+251911234567",
+          services: [],
         },
         { kind: "salon", businessId: salon.business.id, name: "Glow Spa", slug },
       ],

@@ -154,6 +154,34 @@ body {
     border-color: var(--color-primary);
   }
 
+  /* A radio button or checkbox shown as a tappable chip; green when chosen. */
+  .choice {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 2.75rem;
+    padding: 0 0.875rem;
+    border: 1px solid var(--color-line-strong);
+    border-radius: 6px;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .choice input {
+    accent-color: var(--color-primary);
+    width: 1.125rem;
+    height: 1.125rem;
+  }
+  .choice:has(input:checked) {
+    border-color: var(--color-primary);
+    background: var(--color-primary-tint);
+    color: var(--color-primary-dark);
+  }
+  .choice:has(input:focus-visible) {
+    outline: 3px solid var(--color-thread-gold);
+    outline-offset: 2px;
+  }
+
   .link {
     color: var(--color-primary);
     font-weight: 600;

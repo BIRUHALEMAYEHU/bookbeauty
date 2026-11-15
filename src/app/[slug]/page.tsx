@@ -5,6 +5,7 @@ import { getTranslations } from "next-intl/server";
 import { formatPhone } from "@/lib/phone";
 import type { PublicBusinessPage, PublicProfilePage } from "@/modules/public/pages";
 import { publicBusinessPage, publicProfilePage } from "./data";
+import { ServiceList } from "./service-list";
 
 // Render the whole page before sending it: data is cached, and a missing page
 // then gets a real 404 and link previews see the finished page.
@@ -85,6 +86,12 @@ async function BusinessView({ page }: { page: PublicBusinessPage }) {
         <p className="text-muted">{tCategory(page.category)}</p>
       </header>
 
+      {page.services.length > 0 ? (
+        <Section title={t("services")}>
+          <ServiceList services={page.services} />
+        </Section>
+      ) : null}
+
       {page.about ? (
         <Section title={t("about")}>
           <p className="whitespace-pre-line">{page.about}</p>
@@ -162,6 +169,7 @@ async function ProfileView({ page }: { page: PublicProfilePage }) {
                         <PhoneLink phone={place.phone} />
                       </p>
                     ) : null}
+                    {place.services.length > 0 ? <ServiceList services={place.services} /> : null}
                   </div>
                 )}
               </li>
