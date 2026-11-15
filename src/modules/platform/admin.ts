@@ -1,5 +1,5 @@
 import "server-only";
-import { count, desc, eq, sql } from "drizzle-orm";
+import { and, count, desc, eq, isNull, notInArray, or, sql } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/db/client";
 import {
@@ -26,8 +26,17 @@ import { configuredAdminEmails, isPlatformAdmin } from "./admins";
 const LIST_LIMIT = 200;
 
 export async function getPlatformCounts() {
+  const adminEmails = configuredAdminEmails();
   const [[userRow], kinds] = await Promise.all([
-    db.select({ total: count() }).from(users),
+    db
+      .select({ total: count() })
+      .from(users)
+      .leftJoin(platformAdmins, eq(platformAdmins.userId, users.id))
+      .where(
+        adminEmails.length
+          ? and(isNull(platformAdmins.userId), or(isNull(users.email), notInArray(users.email, adminEmails)))
+          : isNull(platformAdmins.userId),
+      ),
     db
       .select({ kind: businesses.kind, total: count() })
       .from(businesses)

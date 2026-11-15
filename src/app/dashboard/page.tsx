@@ -4,10 +4,12 @@ import { getTranslations } from "next-intl/server";
 import { redirect } from "next/navigation";
 import { listHats } from "@/modules/businesses/queries";
 import { getSessionUser } from "@/modules/identity/session";
+import { isPlatformAdmin } from "@/modules/platform/admins";
 
 /**
- * Where login lands (D11): no places yet goes to onboarding, one place opens
- * straight into it, several show the choice.
+ * Where login lands (D11): no places yet goes to onboarding (or the admin area
+ * for a platform administrator), one place opens straight into it, several
+ * show the choice.
  */
 async function ChooseHat() {
   const t = await getTranslations("dashboard");
@@ -16,7 +18,10 @@ async function ChooseHat() {
   if (!user) redirect("/login");
 
   const hats = await listHats(user.id);
-  if (hats.length === 0) redirect("/onboarding");
+  if (hats.length === 0) {
+    // A platform administrator runs the platform; she is not asked to set up a business.
+    redirect((await isPlatformAdmin(user.id)) ? "/admin" : "/onboarding");
+  }
   if (hats.length === 1) redirect(`/dashboard/${hats[0]!.businessId}`);
 
   return (

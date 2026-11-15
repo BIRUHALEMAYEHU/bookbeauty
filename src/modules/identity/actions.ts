@@ -48,7 +48,7 @@ export async function signupAction(
   );
 
   if (!result.ok) return { error: result.error };
-  redirect("/onboarding");
+  redirect("/dashboard");
 }
 
 export async function loginAction(
