@@ -9,7 +9,10 @@
     "subscriptionPayments",
     "activityLog",
     "services",
-    "serviceProviders"
+    "serviceProviders",
+    "workingHours",
+    "availabilityExceptions",
+    "locationClosures"
   ],
   "alsoGuarded": {
     "businesses": "The business row itself. Read and change it through scope.business() and scope.updateBusiness().",

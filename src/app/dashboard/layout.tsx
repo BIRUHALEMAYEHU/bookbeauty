@@ -1,5 +1,5 @@
 import { ClientText } from "@/i18n/client-text";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
-  return <ClientText sections={["pageSettings", "services"]}>{children}</ClientText>;
+  return <ClientText sections={["pageSettings", "services", "hours"]}>{children}</ClientText>;
 }

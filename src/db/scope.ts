@@ -33,7 +33,10 @@ export type ScopedMember = {
   hasProfile: boolean;
 };
 
-type InsertValues<T extends TenantTable> = Omit<InferInsertModel<T>, "businessId">;
+// A mapped type rather than Omit, which loses the optional (nullable or defaulted) columns here.
+type InsertValues<T extends TenantTable> = {
+  [K in keyof InferInsertModel<T> as K extends "businessId" ? never : K]: InferInsertModel<T>[K];
+};
 
 /**
  * Query helpers that always filter by, or stamp, the scope's business_id.

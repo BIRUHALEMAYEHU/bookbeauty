@@ -6,7 +6,14 @@
   "common": {
     "durationHours": "{hours} hr",
     "durationMinutes": "{minutes} min",
-    "durationHoursMinutes": "{hours} hr {minutes} min"
+    "durationHoursMinutes": "{hours} hr {minutes} min",
+    "weekday0": "Sunday",
+    "weekday1": "Monday",
+    "weekday2": "Tuesday",
+    "weekday3": "Wednesday",
+    "weekday4": "Thursday",
+    "weekday5": "Friday",
+    "weekday6": "Saturday"
   },
   "home": {
     "title": "Book",
@@ -188,6 +195,7 @@
     "nav": {
       "overview": "Overview",
       "services": "Services",
+      "hours": "Hours",
       "page": "Public page",
       "activity": "Activity log"
     },
@@ -281,6 +289,65 @@
       "not_found": "This service no longer exists."
     }
   },
+  "hours": {
+    "title": "Hours",
+    "subtitle": "When customers can book.",
+    "weekTitle": "Weekly hours",
+    "weekTitleFor": "{name}'s weekly hours",
+    "noMembers": "Nobody here has a professional profile yet, so there are no hours to set. Hours belong to the people who serve customers.",
+    "noHours": "No hours set. Customers cannot book her yet.",
+    "editHours": "Set hours",
+    "back": "Back to hours",
+    "range": "{start} to {end}",
+    "dayOff": "Off",
+    "working": "Working",
+    "from": "From",
+    "to": "To",
+    "addBreak": "Add a break",
+    "removeBreak": "Remove the break",
+    "afterBreak": "After the break",
+    "saveWeek": "Save hours",
+    "saving": "Saving…",
+    "saved": "Saved.",
+    "exceptionsTitle": "Time off and extra hours",
+    "exceptionsEmpty": "Nothing coming up.",
+    "kindTimeOff": "Time off",
+    "kindExtraHours": "Extra hours",
+    "addException": "Add",
+    "firstDay": "Day",
+    "lastDay": "Last day (optional)",
+    "lastDayHint": "Leave empty for a single day.",
+    "allDay": "All day",
+    "fromTime": "From (optional)",
+    "toTime": "To (optional)",
+    "note": "Note (optional)",
+    "remove": "Remove",
+    "closuresTitle": "Closed days",
+    "closuresHint": "Holidays and other days the whole place is closed. Nobody can be booked then.",
+    "closuresEmpty": "No closed days coming up.",
+    "reason": "Reason (optional)",
+    "reasonPlaceholder": "For example: Meskel",
+    "addClosure": "Add closed days",
+    "rulesTitle": "Booking rules",
+    "minNotice": "Shortest notice",
+    "minNoticeHint": "How soon before the start a customer may still book.",
+    "noNotice": "No notice needed",
+    "maxAdvance": "How far ahead",
+    "maxAdvanceHint": "The furthest day a customer may book.",
+    "days": "{count, plural, one {# day} other {# days}}",
+    "travelBuffer": "Travel time after a home visit",
+    "travelBufferHint": "Blocked after each visit to a customer's place, so you can get back.",
+    "none": "None",
+    "saveRules": "Save rules",
+    "errors": {
+      "forbidden": "You do not have permission to change hours here.",
+      "invalid_input": "Check the form and try again.",
+      "member_invalid": "This person is no longer on the team.",
+      "shifts_overlap": "The times on one day overlap. The break must end after it starts.",
+      "dates_invalid": "Check the dates: the end must come after the start.",
+      "not_found": "That entry no longer exists."
+    }
+  },
   "activity": {
     "title": "Activity log",
     "subtitle": "Who changed what, and when. Entries cannot be edited or deleted.",
@@ -297,7 +364,16 @@
       "service_updated": "Changed a service",
       "service_price_changed": "Changed a service's price",
       "service_archived": "Archived a service",
-      "service_restored": "Restored a service"
+      "service_restored": "Restored a service",
+      "working_hours_updated": "Changed weekly hours",
+      "time_off_added": "Added time off",
+      "time_off_removed": "Removed time off",
+      "extra_hours_added": "Added extra hours",
+      "extra_hours_removed": "Removed extra hours",
+      "closure_added": "Added closed days",
+      "closure_removed": "Removed closed days",
+      "booking_rules_updated": "Changed the booking rules",
+      "travel_buffer_updated": "Changed travel time"
     },
     "changed": "Changed: {fields}",
     "fields": {
@@ -315,7 +391,11 @@
       "locationType": "where it is done",
       "priceStudio": "price",
       "priceClientPlace": "price at the customer's place",
-      "providerMembershipIds": "who does it"
+      "providerMembershipIds": "who does it",
+      "shifts": "hours",
+      "minNoticeMinutes": "shortest notice",
+      "maxAdvanceDays": "how far ahead",
+      "travelBufferMinutes": "travel time"
     }
   },
   "admin": {
