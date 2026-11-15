@@ -1,5 +1,6 @@
 import "server-only";
 import { z } from "zod";
+import { cleanTelegramUsername } from "@/modules/identity/telegram";
 
 const schema = z.object({
   DATABASE_URL: z.string().url(),
@@ -8,7 +9,7 @@ const schema = z.object({
   GOOGLE_CLIENT_ID: z.string().optional(),
   GOOGLE_CLIENT_SECRET: z.string().optional(),
   TELEGRAM_BOT_TOKEN: z.string().optional(),
-  TELEGRAM_BOT_USERNAME: z.string().optional(),
+  TELEGRAM_BOT_USERNAME: z.string().optional().transform(cleanTelegramUsername),
   RESEND_API_KEY: z.string().optional(),
   EMAIL_FROM: z.string().optional(),
   TURNSTILE_SITE_KEY: z.string().optional(),

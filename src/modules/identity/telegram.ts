@@ -38,3 +38,17 @@ export function displayNameFromTelegram(payload: TelegramAuthPayload) {
   const full = [payload.first_name, payload.last_name].filter(Boolean).join(" ").trim();
   return full || payload.username || `Telegram ${payload.id}`;
 }
+
+/**
+ * The widget needs the bare bot username. People often paste the link or the
+ * @name instead, so "https://t.me/BookBot", "t.me/BookBot" and "@BookBot" all
+ * become "BookBot". Returns undefined when nothing usable is left.
+ */
+export function cleanTelegramUsername(raw: string | undefined): string | undefined {
+  const cleaned = (raw ?? "")
+    .trim()
+    .replace(/^(https?:\/\/)?(www\.)?(t|telegram)\.me\//i, "")
+    .replace(/^@/, "")
+    .replace(/[/?#].*$/, "");
+  return /^[A-Za-z0-9_]{3,}$/.test(cleaned) ? cleaned : undefined;
+}

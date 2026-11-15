@@ -1,6 +1,7 @@
 import { createHash, createHmac } from "node:crypto";
 import { describe, expect, it } from "vitest";
 import {
+  cleanTelegramUsername,
   displayNameFromTelegram,
   type TelegramAuthPayload,
   verifyTelegramLogin,
@@ -61,5 +62,26 @@ describe("displayNameFromTelegram", () => {
         hash: "",
       }),
     ).toBe("Hana Kebede");
+  });
+});
+
+describe("cleanTelegramUsername", () => {
+  it("accepts the bare name, the @name and the link", () => {
+    for (const raw of [
+      "BookBeautyBot",
+      "@BookBeautyBot",
+      "https://t.me/BookBeautyBot",
+      "t.me/BookBeautyBot/",
+      " https://telegram.me/BookBeautyBot?start=1 ",
+    ]) {
+      expect(cleanTelegramUsername(raw)).toBe("BookBeautyBot");
+    }
+  });
+
+  it("gives nothing for empty or unusable values", () => {
+    expect(cleanTelegramUsername(undefined)).toBeUndefined();
+    expect(cleanTelegramUsername("")).toBeUndefined();
+    expect(cleanTelegramUsername("https://t.me/")).toBeUndefined();
+    expect(cleanTelegramUsername("not a name!")).toBeUndefined();
   });
 });

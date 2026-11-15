@@ -24,8 +24,14 @@ export default defineConfig({
       SESSION_SECRET:
         process.env.SESSION_SECRET ?? "test-session-secret-at-least-32-chars",
       APP_URL: process.env.APP_URL ?? "http://localhost:3000",
-      // Never send real email from tests, even if .env has a key.
+      // Tests never use real outside services, even when .env has their keys.
       RESEND_API_KEY: "",
+      TURNSTILE_SITE_KEY: "",
+      TURNSTILE_SECRET_KEY: "",
+      GOOGLE_CLIENT_ID: "",
+      GOOGLE_CLIENT_SECRET: "",
+      TELEGRAM_BOT_TOKEN: "",
+      TELEGRAM_BOT_USERNAME: "",
     },
   },
 });
