@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { listMembershipsForUser } from "@/modules/businesses/queries";
 import { logoutAction, resendVerificationAction } from "@/modules/identity/actions";
 import { getSessionUser } from "@/modules/identity/session";
+import { isPlatformAdmin } from "@/modules/platform/admins";
 
 export const instant = false;
 
@@ -32,6 +33,7 @@ async function AccountBody({
   if (!user) redirect("/login");
 
   const memberships = await listMembershipsForUser(user.id);
+  const admin = await isPlatformAdmin(user.id);
   const notice = asNotice((await searchParams).notice);
   const needsVerification = Boolean(user.email && !user.emailVerifiedAt);
 
@@ -111,6 +113,14 @@ async function AccountBody({
           </ul>
         )}
       </section>
+
+      {admin ? (
+        <p className="text-sm">
+          <Link href="/admin" className="underline">
+            {t("adminLink")}
+          </Link>
+        </p>
+      ) : null}
 
       <form action={logoutAction}>
         <button

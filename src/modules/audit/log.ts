@@ -1,7 +1,8 @@
 import "server-only";
 import { and, desc, eq } from "drizzle-orm";
 import { db, type DbExecutor } from "@/db/client";
-import { activityLog, type ActivityLogEntry } from "@/db/schema";
+import { activityLog, users, type ActivityLogEntry } from "@/db/schema";
+import type { BusinessScope } from "@/db/scope";
 
 export type LogActivityInput = {
   businessId?: string | null;
@@ -67,4 +68,40 @@ export async function listActivityForEntity(
       ),
     )
     .orderBy(desc(activityLog.createdAt));
+}
+
+export type ActivityRow = {
+  id: string;
+  action: string;
+  createdAt: Date;
+  /** Null when the system or a deleted account made the change. */
+  actorName: string | null;
+  before: Record<string, unknown> | null;
+  after: Record<string, unknown> | null;
+};
+
+/**
+ * The business's activity log for the person acting, newest first. Only roles
+ * allowed to see it (the owner, Section 14.3) get anything.
+ */
+export async function listActivityForScope(
+  scope: BusinessScope,
+  options: { limit?: number } = {},
+): Promise<ActivityRow[]> {
+  scope.require("activity_log.view");
+  const limit = Math.min(options.limit ?? 100, 200);
+  return db
+    .select({
+      id: activityLog.id,
+      action: activityLog.action,
+      createdAt: activityLog.createdAt,
+      actorName: users.displayName,
+      before: activityLog.before,
+      after: activityLog.after,
+    })
+    .from(activityLog)
+    .leftJoin(users, eq(users.id, activityLog.actorUserId))
+    .where(eq(activityLog.businessId, scope.businessId))
+    .orderBy(desc(activityLog.createdAt))
+    .limit(limit);
 }

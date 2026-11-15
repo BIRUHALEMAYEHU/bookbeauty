@@ -58,7 +58,15 @@ export async function entitlement(
 
   let planKey: PlanKey = freePlanForKind(business.kind);
   if (subscription) {
-    if (subscription.status === "active" || subscription.status === "free") {
+    // A paid period that has run out counts as lapsed even before the daily
+    // job marks it, so nobody keeps paid features past what they paid for (D46).
+    const expired =
+      subscription.status === "active" &&
+      subscription.currentPeriodEnd !== null &&
+      subscription.currentPeriodEnd < new Date();
+    if (expired) {
+      planKey = freePlanForKind(business.kind);
+    } else if (subscription.status === "active" || subscription.status === "free") {
       planKey = subscription.planKey as PlanKey;
     } else if (subscription.status === "lapsed") {
       planKey = freePlanForKind(business.kind);

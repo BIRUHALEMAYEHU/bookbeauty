@@ -66,6 +66,11 @@ async function DashboardHeader({ params }: { params: Promise<{ businessId: strin
             {t("nav.page")}
           </Link>
         ) : null}
+        {scope.can("activity_log.view") ? (
+          <Link href={`/dashboard/${businessId}/activity`} className="underline">
+            {t("nav.activity")}
+          </Link>
+        ) : null}
       </nav>
     </header>
   );

@@ -82,7 +82,8 @@
       "link_invalid": "That link has expired or was already used.",
       "password_reset": "Your password is changed. You were logged out on other devices."
     },
-    "openDashboard": "Open"
+    "openDashboard": "Open",
+    "adminLink": "Platform administration"
   },
   "onboarding": {
     "title": "How will you use Book?",
@@ -181,7 +182,8 @@
     "bookingLinkMissing": "This place has no public address yet.",
     "nav": {
       "overview": "Overview",
-      "page": "Public page"
+      "page": "Public page",
+      "activity": "Activity log"
     },
     "viewPage": "View your page",
     "editPage": "Edit your page"
@@ -216,6 +218,121 @@
       "invalid_input": "Check the form and try again.",
       "phone_invalid": "Enter a valid phone number, for example 0911 23 45 67 or 011 123 4567.",
       "forbidden": "Only the owner can change the public page."
+    }
+  },
+  "activity": {
+    "title": "Activity log",
+    "subtitle": "Who changed what, and when. Entries cannot be edited or deleted.",
+    "empty": "Nothing has been recorded yet.",
+    "bySystem": "The system",
+    "by": "by {name}",
+    "actions": {
+      "business_created": "Created the business",
+      "business_page_updated": "Updated the public page",
+      "professional_profile_created": "Created a professional profile",
+      "subscription_payment_recorded": "A subscription payment was recorded",
+      "subscription_moved_to_free": "The plan was moved to Free"
+    },
+    "changed": "Changed: {fields}",
+    "fields": {
+      "name": "name",
+      "about": "about text",
+      "phone": "phone",
+      "locationName": "location name",
+      "addressText": "address",
+      "addressPublic": "address visibility",
+      "planKey": "plan",
+      "status": "status"
+    }
+  },
+  "admin": {
+    "title": "Platform administration",
+    "nav": {
+      "overview": "Overview",
+      "businesses": "Businesses",
+      "users": "Accounts",
+      "exit": "Back to my account"
+    },
+    "counts": {
+      "users": "Accounts",
+      "independents": "Solo practices",
+      "salons": "Salons"
+    },
+    "limitNote": "Showing the newest {count}.",
+    "businesses": {
+      "title": "Businesses",
+      "name": "Name",
+      "kind": "Kind",
+      "address": "Address",
+      "owner": "Owner",
+      "plan": "Plan",
+      "created": "Created",
+      "kindIndependent": "Solo practice",
+      "kindSalon": "Salon",
+      "noEmail": "no email",
+      "open": "Open",
+      "empty": "No businesses yet."
+    },
+    "plan": {
+      "free": "Free",
+      "active": "Paid until {date}",
+      "expired": "Payment ran out on {date}; now on Free features",
+      "lapsed": "Lapsed; on Free features"
+    },
+    "business": {
+      "owner": "Owner",
+      "currentPlan": "Current plan",
+      "status": "Status",
+      "recordTitle": "Record a subscription payment",
+      "recordHint": "Use this after the business has paid you by Telebirr, bank transfer or cash. It switches them to the paid plan until the day you choose.",
+      "planField": "Plan",
+      "amount": "Amount paid (birr)",
+      "method": "How they paid",
+      "reference": "Reference or transaction number (optional)",
+      "paidUntil": "Paid until",
+      "methods": {
+        "telebirr": "Telebirr",
+        "bank_transfer": "Bank transfer",
+        "cash": "Cash",
+        "other": "Other"
+      },
+      "record": "Record payment",
+      "noPaidPlans": "There is no paid plan for solo practices yet.",
+      "moveToFree": "Move to the Free plan",
+      "moveToFreeHint": "Turns off paid features. Nothing is deleted.",
+      "paymentsTitle": "Payments recorded",
+      "noPayments": "No payments recorded.",
+      "paymentLine": "{amount} by {method}, covering until {until}",
+      "recordedBy": "Recorded by {name} on {date}",
+      "back": "All businesses"
+    },
+    "users": {
+      "title": "Accounts",
+      "name": "Name",
+      "email": "Email",
+      "verified": "verified",
+      "unverified": "not verified",
+      "noEmail": "no email (Telegram)",
+      "status": "Status",
+      "active": "Active",
+      "suspended": "Suspended",
+      "admin": "Administrator",
+      "created": "Joined",
+      "suspend": "Suspend",
+      "restore": "Restore",
+      "empty": "No accounts yet."
+    },
+    "notices": {
+      "payment_recorded": "Payment recorded. The plan is active.",
+      "moved_to_free": "Moved to the Free plan.",
+      "user_suspended": "Account suspended and logged out everywhere.",
+      "user_restored": "Account restored.",
+      "invalid_input": "Check the form and try again.",
+      "not_found": "That record no longer exists.",
+      "plan_not_allowed": "That plan is not available for this kind of business.",
+      "date_in_past": "The paid-until day must be today or later.",
+      "cannot_suspend_self": "You cannot suspend your own account.",
+      "cannot_suspend_admin": "Administrators cannot be suspended here."
     }
   }
 }

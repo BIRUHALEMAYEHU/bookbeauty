@@ -2,15 +2,42 @@ import "server-only";
 import { eq } from "drizzle-orm";
 import { db } from "@/db/client";
 import { platformAdmins, users } from "@/db/schema";
+import { env } from "@/env";
 import { logActivity } from "@/modules/audit/log";
 
-export async function isPlatformAdmin(userId: string): Promise<boolean> {
-  const [row] = await db
-    .select({ userId: platformAdmins.userId })
-    .from(platformAdmins)
-    .where(eq(platformAdmins.userId, userId))
+/** Emails named in PLATFORM_ADMIN_EMAILS, lower-cased. */
+export function configuredAdminEmails(raw: string | undefined = env.PLATFORM_ADMIN_EMAILS): string[] {
+  return (raw ?? "")
+    .split(",")
+    .map((email) => email.trim().toLowerCase())
+    .filter(Boolean);
+}
+
+/**
+ * A platform administrator is either granted in the database, or has a
+ * verified email named in PLATFORM_ADMIN_EMAILS (how the first admin gets in).
+ * An unverified email never counts: anyone can sign up with any address.
+ */
+export async function isPlatformAdmin(
+  userId: string,
+  adminEmails: string[] = configuredAdminEmails(),
+): Promise<boolean> {
+  const [user] = await db
+    .select({
+      email: users.email,
+      emailVerifiedAt: users.emailVerifiedAt,
+      status: users.status,
+      granted: platformAdmins.userId,
+    })
+    .from(users)
+    .leftJoin(platformAdmins, eq(platformAdmins.userId, users.id))
+    .where(eq(users.id, userId))
     .limit(1);
-  return Boolean(row);
+  if (!user || user.status !== "active") return false;
+  if (user.granted) return true;
+  return Boolean(
+    user.email && user.emailVerifiedAt && adminEmails.includes(user.email.toLowerCase()),
+  );
 }
 
 export type GrantAdminResult =

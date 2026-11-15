@@ -10,6 +10,8 @@ const schema = z.object({
   GOOGLE_CLIENT_SECRET: z.string().optional(),
   TELEGRAM_BOT_TOKEN: z.string().optional(),
   TELEGRAM_BOT_USERNAME: z.string().optional().transform(cleanTelegramUsername),
+  /** Comma-separated emails that are platform administrators once verified. */
+  PLATFORM_ADMIN_EMAILS: z.string().optional(),
   RESEND_API_KEY: z.string().optional(),
   EMAIL_FROM: z.string().optional(),
   TURNSTILE_SITE_KEY: z.string().optional(),

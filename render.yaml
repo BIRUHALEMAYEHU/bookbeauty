@@ -35,6 +35,9 @@ services:
       # Change this if Render gives the service a different address.
       - key: APP_URL
         value: https://bookbeauty.onrender.com
+      # Comma-separated emails that become platform administrators once verified.
+      - key: PLATFORM_ADMIN_EMAILS
+        sync: false
       # Set these in the Render dashboard when the accounts exist.
       - key: RESEND_API_KEY
         sync: false
