@@ -3,6 +3,7 @@ export * from "./identity";
 export * from "./businesses";
 export * from "./catalog";
 export * from "./availability";
+export * from "./booking";
 export * from "./audit";
 export * from "./entitlements";
 export * from "./abuse";

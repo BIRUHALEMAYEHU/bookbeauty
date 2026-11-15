@@ -12,7 +12,10 @@
     "serviceProviders",
     "workingHours",
     "availabilityExceptions",
-    "locationClosures"
+    "locationClosures",
+    "customerRecords",
+    "bookings",
+    "appointments"
   ],
   "alsoGuarded": {
     "businesses": "The business row itself. Read and change it through scope.business() and scope.updateBusiness().",
@@ -26,7 +29,8 @@
     "src/modules/audit/**",
     "src/modules/businesses/create.ts",
     "src/modules/businesses/queries.ts",
-    "src/modules/public/**"
+    "src/modules/public/**",
+    "src/modules/booking/engine.ts"
   ],
   "databaseFilesReason": "Accounts, sessions, rate limits, platform admins and plans are not business data. The others are platform files below.",
   "platformFiles": [
@@ -36,7 +40,8 @@
     "src/modules/entitlements/resolve.ts",
     "src/modules/audit/log.ts",
     "src/modules/public/**",
-    "src/modules/platform/**"
+    "src/modules/platform/**",
+    "src/modules/booking/engine.ts"
   ],
-  "platformFilesReason": "These create businesses, decide who is acting in one, resolve plans, write the activity log, read the published parts of business pages for guests, and run the platform administrator's screens. They run before a scope exists, or for every business, so they read business tables directly. Keep this list short."
+  "platformFilesReason": "These create businesses, decide who is acting in one, resolve plans, write the activity log, read the published parts of business pages for guests, take bookings from guests (who have no membership, and whose chosen professional may be busy at another business), and run the platform administrator's screens. They run before a scope exists, or for every business, so they read business tables directly. Keep this list short."
 }
