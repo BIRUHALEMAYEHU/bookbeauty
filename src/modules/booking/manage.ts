@@ -1,5 +1,5 @@
 import "server-only";
-import { and, eq, gte, inArray, lt } from "drizzle-orm";
+import { and, eq, gte, inArray, lt, sql } from "drizzle-orm";
 import { z } from "zod";
 import {
   appointments,
@@ -42,7 +42,18 @@ export type StaffBooking = {
   createdAt: Date;
 };
 
-export type ManageError = "forbidden" | "not_found" | "wrong_status";
+export type ManageError =
+  | "forbidden"
+  | "not_found"
+  | "wrong_status"
+  /** Completing or marking a no-show before the visit has started. */
+  | "not_started"
+  | "amount_invalid"
+  | "method_invalid";
+
+/** How a customer paid. Recorded with the amount when a visit is completed (D59). */
+export const PAYMENT_METHODS = ["cash", "telebirr", "bank_transfer", "other"] as const;
+export type PaymentMethod = (typeof PAYMENT_METHODS)[number];
 export type ManageResult = { ok: true } | { ok: false; error: ManageError };
 
 /** Statuses that still have a visit ahead of them. */
@@ -78,9 +89,9 @@ async function expireUnansweredRequests(scope: BusinessScope, now: Date) {
 }
 
 /**
- * Bookings with a visit still to come: requests waiting for approval and
- * confirmed visits from the start of today, soonest first. A stylist sees
- * only her own (playbook 14.3).
+ * Bookings still open from `from` onwards: requests waiting for approval,
+ * and confirmed or arrived visits (including past ones nobody has closed
+ * yet), soonest first. A stylist sees only her own (playbook 14.3).
  */
 export async function listUpcomingBookings(
   scope: BusinessScope,
@@ -157,14 +168,19 @@ export async function listUpcomingBookings(
 }
 
 /** The booking and its appointment, if the actor may act on it. */
-async function loadForChange(scope: BusinessScope, bookingId: string) {
+async function loadForChange(
+  scope: BusinessScope,
+  bookingId: string,
+  action: "bookings.create" | "bookings.complete" = "bookings.create",
+) {
   if (!z.uuid().safeParse(bookingId).success) return { ok: false as const, error: "not_found" as const };
   const [booking] = await scope.select(bookings, eq(bookings.id, bookingId));
   if (!booking) return { ok: false as const, error: "not_found" as const };
   const [appointment] = await scope.select(appointments, eq(appointments.bookingId, bookingId));
-  // Whoever may take bookings may answer them: the owner and front desk for
-  // everyone, a stylist for her own (playbook 8.9, 14.3).
-  if (!scope.can("bookings.create", { professionalUserId: appointment?.professionalUserId })) {
+  // Whoever may take bookings may answer them, and whoever may complete visits
+  // may close them: the owner and front desk for everyone, a stylist for her
+  // own (playbook 8.9, 14.3).
+  if (!scope.can(action, { professionalUserId: appointment?.professionalUserId })) {
     return { ok: false as const, error: "forbidden" as const };
   }
   return { ok: true as const, booking, appointment };
@@ -235,6 +251,140 @@ export async function cancelBookingByBusiness(
       entityId: bookingId,
       before: { status },
       after: { status: "cancelled" },
+    });
+    return { ok: true };
+  });
+}
+
+/** The customer has come in (playbook 8.12). Only on the day of the visit. */
+export async function markArrived(
+  scope: BusinessScope,
+  bookingId: string,
+  now = new Date(),
+): Promise<ManageResult> {
+  const found = await loadForChange(scope, bookingId, "bookings.complete");
+  if (!found.ok) return found;
+  if (found.booking.status !== "confirmed") return { ok: false, error: "wrong_status" };
+  // Not more than a few hours early: "arrived" is for the visit at hand, not one next week.
+  const startsAt = found.appointment?.startsAt;
+  if (!startsAt || startsAt.getTime() - now.getTime() > 12 * 60 * 60_000) {
+    return { ok: false, error: "not_started" };
+  }
+
+  return scope.transaction(async (scoped): Promise<ManageResult> => {
+    const [updated] = await scoped.update(
+      bookings,
+      { status: "arrived", updatedAt: now },
+      and(eq(bookings.id, bookingId), eq(bookings.status, "confirmed")),
+    );
+    if (!updated) return { ok: false, error: "wrong_status" };
+    await scoped.log({
+      action: "booking.arrived",
+      entityType: "booking",
+      entityId: bookingId,
+      before: { status: "confirmed" },
+      after: { status: "arrived" },
+    });
+    return { ok: true };
+  });
+}
+
+/**
+ * Closes a visit with what was paid and how (D59: both are required, because
+ * the income figures are built on them). The customer's record gains the
+ * visit and the amount.
+ */
+export async function completeBooking(
+  scope: BusinessScope,
+  bookingId: string,
+  payment: { amountPaid: number; method: string },
+  now = new Date(),
+): Promise<ManageResult> {
+  if (!Number.isInteger(payment.amountPaid) || payment.amountPaid < 0 || payment.amountPaid > 100_000_000) {
+    return { ok: false, error: "amount_invalid" };
+  }
+  const method = PAYMENT_METHODS.find((value) => value === payment.method);
+  if (!method) return { ok: false, error: "method_invalid" };
+
+  const found = await loadForChange(scope, bookingId, "bookings.complete");
+  if (!found.ok) return found;
+  const { booking, appointment } = found;
+  if (booking.status !== "confirmed" && booking.status !== "arrived") {
+    return { ok: false, error: "wrong_status" };
+  }
+  if (!appointment || appointment.startsAt > now) return { ok: false, error: "not_started" };
+
+  return scope.transaction(async (scoped): Promise<ManageResult> => {
+    const [updated] = await scoped.update(
+      bookings,
+      {
+        status: "completed",
+        amountPaid: payment.amountPaid,
+        paymentMethod: method,
+        completedAt: now,
+        completedByUserId: scope.actor.userId,
+        updatedAt: now,
+      },
+      and(eq(bookings.id, bookingId), inArray(bookings.status, ["confirmed", "arrived"])),
+    );
+    if (!updated) return { ok: false, error: "wrong_status" };
+
+    if (booking.customerRecordId) {
+      await scoped.update(
+        customerRecords,
+        {
+          visitCount: sql`${customerRecords.visitCount} + 1`,
+          totalSpent: sql`${customerRecords.totalSpent} + ${payment.amountPaid}`,
+          // Completing an older visit late must not move "last visit" backwards.
+          lastVisitAt: sql`greatest(${customerRecords.lastVisitAt}, ${appointment.startsAt.toISOString()}::timestamptz)`,
+          updatedAt: now,
+        },
+        eq(customerRecords.id, booking.customerRecordId),
+      );
+    }
+    await scoped.log({
+      action: "booking.completed",
+      entityType: "booking",
+      entityId: bookingId,
+      before: { status: booking.status },
+      after: { status: "completed", amountPaid: payment.amountPaid, paymentMethod: method },
+    });
+    return { ok: true };
+  });
+}
+
+/** The customer did not come. Recorded on her record at this business (playbook 8.12). */
+export async function markNoShow(
+  scope: BusinessScope,
+  bookingId: string,
+  now = new Date(),
+): Promise<ManageResult> {
+  const found = await loadForChange(scope, bookingId, "bookings.complete");
+  if (!found.ok) return found;
+  const { booking, appointment } = found;
+  if (booking.status !== "confirmed") return { ok: false, error: "wrong_status" };
+  if (!appointment || appointment.startsAt > now) return { ok: false, error: "not_started" };
+
+  return scope.transaction(async (scoped): Promise<ManageResult> => {
+    const [updated] = await scoped.update(
+      bookings,
+      { status: "no_show", updatedAt: now },
+      and(eq(bookings.id, bookingId), eq(bookings.status, "confirmed")),
+    );
+    if (!updated) return { ok: false, error: "wrong_status" };
+    if (booking.customerRecordId) {
+      await scoped.update(
+        customerRecords,
+        { noShowCount: sql`${customerRecords.noShowCount} + 1`, updatedAt: now },
+        eq(customerRecords.id, booking.customerRecordId),
+      );
+    }
+    await scoped.log({
+      action: "booking.no_show",
+      entityType: "booking",
+      entityId: bookingId,
+      before: { status: "confirmed" },
+      after: { status: "no_show" },
     });
     return { ok: true };
   });

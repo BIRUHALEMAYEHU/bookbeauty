@@ -3,7 +3,15 @@
 import { redirect } from "next/navigation";
 import { forBusiness } from "@/db/scope";
 import { getSessionUser } from "@/modules/identity/session";
-import { approveBooking, cancelBookingByBusiness, setApprovalMode } from "./manage";
+import { parsePrice } from "@/modules/catalog/services";
+import {
+  approveBooking,
+  cancelBookingByBusiness,
+  completeBooking,
+  markArrived,
+  markNoShow,
+  setApprovalMode,
+} from "./manage";
 
 async function scopeFor(businessId: string) {
   const user = await getSessionUser();
@@ -26,6 +34,36 @@ export async function approveBookingAction(businessId: string, bookingId: string
 export async function cancelBookingByBusinessAction(businessId: string, bookingId: string) {
   const scope = await scopeFor(businessId);
   backToBookings(businessId, scope ? await cancelBookingByBusiness(scope, bookingId) : null);
+}
+
+export async function markArrivedAction(businessId: string, bookingId: string) {
+  const scope = await scopeFor(businessId);
+  backToBookings(businessId, scope ? await markArrived(scope, bookingId) : null);
+}
+
+/** Amount in birr as typed ("350" or "1,250.50"), and how she paid. */
+export async function completeBookingAction(
+  businessId: string,
+  bookingId: string,
+  formData: FormData,
+) {
+  const scope = await scopeFor(businessId);
+  const amountPaid = parsePrice(String(formData.get("amountPaid") ?? "").trim());
+  if (amountPaid === null) backToBookings(businessId, { ok: false, error: "amount_invalid" });
+  backToBookings(
+    businessId,
+    scope
+      ? await completeBooking(scope, bookingId, {
+          amountPaid: amountPaid!,
+          method: String(formData.get("paymentMethod") ?? ""),
+        })
+      : null,
+  );
+}
+
+export async function markNoShowAction(businessId: string, bookingId: string) {
+  const scope = await scopeFor(businessId);
+  backToBookings(businessId, scope ? await markNoShow(scope, bookingId) : null);
 }
 
 export async function setApprovalModeAction(businessId: string, formData: FormData) {

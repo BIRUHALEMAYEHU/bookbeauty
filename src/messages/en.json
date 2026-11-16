@@ -417,8 +417,8 @@
   },
   "bookings": {
     "title": "Bookings",
-    "subtitle": "Requests waiting for you, and visits still to come.",
-    "subtitleOwn": "Your requests and your visits still to come.",
+    "subtitle": "Requests waiting for you, today's visits, and what is coming up.",
+    "subtitleOwn": "Your requests, today's visits and what is coming up.",
     "pendingTitle": "Waiting for approval ({count})",
     "pendingHint": "The time is kept for the customer until you answer. Call her first if you wish.",
     "upcomingTitle": "Coming up",
@@ -447,8 +447,30 @@
     "notices": {
       "forbidden": "You do not have permission to change that booking.",
       "not_found": "That booking no longer exists.",
-      "wrong_status": "That booking had already changed. Here is how things stand now."
-    }
+      "wrong_status": "That booking had already changed. Here is how things stand now.",
+      "not_started": "That visit has not started yet.",
+      "amount_invalid": "Enter the amount as a number, for example 350 or 1250.50.",
+      "method_invalid": "Choose how she paid."
+    },
+    "todayTitle": "Today",
+    "todayEmpty": "No visits today.",
+    "unfinishedTitle": "Not finished ({count})",
+    "unfinishedHint": "Past visits still waiting to be completed or marked as missed.",
+    "markArrived": "Arrived",
+    "complete": "Complete",
+    "completeTitle": "What did she pay?",
+    "amountPaid": "Amount paid (ETB)",
+    "paymentMethod": "How",
+    "methods": {
+      "cash": "Cash",
+      "telebirr": "Telebirr",
+      "bank_transfer": "Bank transfer",
+      "other": "Other"
+    },
+    "completeSave": "Complete visit",
+    "noShow": "Didn't come",
+    "noShowConfirm": "Yes, she didn't come",
+    "noShowWarning": "This is recorded on her customer record at this business."
   },
   "activity": {
     "title": "Activity log",
@@ -482,7 +504,10 @@
       "booking_approved": "Approved a booking",
       "booking_declined": "Declined a booking request",
       "booking_cancelled_by_business": "Cancelled a booking",
-      "approval_mode_updated": "Changed how bookings are accepted"
+      "approval_mode_updated": "Changed how bookings are accepted",
+      "booking_arrived": "Marked a customer as arrived",
+      "booking_completed": "Completed a visit",
+      "booking_no_show": "Marked a customer as not coming"
     },
     "changed": "Changed: {fields}",
     "fields": {
@@ -505,7 +530,9 @@
       "minNoticeMinutes": "shortest notice",
       "maxAdvanceDays": "how far ahead",
       "travelBufferMinutes": "travel time",
-      "approvalMode": "approval"
+      "approvalMode": "approval",
+      "amountPaid": "amount paid",
+      "paymentMethod": "payment method"
     }
   },
   "admin": {

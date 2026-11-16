@@ -2,31 +2,70 @@ import { Suspense } from "react";
 import { getTranslations } from "next-intl/server";
 import { formatMoney } from "@/lib/money";
 import { formatPhone } from "@/lib/phone";
-import { formatDate, formatTime, localDateOf, zonedTimeToUtc } from "@/lib/time";
-import { listUpcomingBookings, type StaffBooking } from "@/modules/booking/manage";
+import { addDays, formatDate, formatTime, localDateOf, zonedTimeToUtc } from "@/lib/time";
+import {
+  listUpcomingBookings,
+  PAYMENT_METHODS,
+  type StaffBooking,
+} from "@/modules/booking/manage";
 import {
   approveBookingAction,
   cancelBookingByBusinessAction,
+  completeBookingAction,
+  markArrivedAction,
+  markNoShowAction,
   setApprovalModeAction,
 } from "@/modules/booking/manage-actions";
 import { grantFor } from "@/modules/identity/permissions";
 import { currentScope } from "../current-scope";
 
-const NOTICES = ["forbidden", "not_found", "wrong_status"] as const;
+const NOTICES = [
+  "forbidden",
+  "not_found",
+  "wrong_status",
+  "not_started",
+  "amount_invalid",
+  "method_invalid",
+] as const;
+
+/** How far back unfinished visits are listed. Older ones are left as they are. */
+const UNFINISHED_DAYS = 30;
+/** "Arrived" shows from this long before the start. */
+const ARRIVED_FROM_MS = 12 * 60 * 60_000;
+
+/** Santim as she would type it: "350" or "1250.50". */
+function birr(amount: number) {
+  return amount % 100 === 0 ? String(amount / 100) : (amount / 100).toFixed(2);
+}
 
 async function BookingCard({
   booking,
   businessId,
   timeZone,
-  canAct,
+  now,
+  canAnswer,
+  canClose,
 }: {
   booking: StaffBooking;
   businessId: string;
   timeZone: string;
-  canAct: boolean;
+  now: Date;
+  /** May approve, decline or cancel it. */
+  canAnswer: boolean;
+  /** May mark it arrived, completed or missed. */
+  canClose: boolean;
 }) {
   const t = await getTranslations("bookings");
   const pending = booking.status === "pending_approval";
+  const started = booking.startsAt <= now;
+  const showArrived =
+    canClose &&
+    booking.status === "confirmed" &&
+    booking.startsAt.getTime() - now.getTime() <= ARRIVED_FROM_MS &&
+    // Once the visit is over, "arrived" no longer helps; complete it instead.
+    booking.endsAt > now;
+  const showClose = canClose && started && !pending;
+  const showCancel = canAnswer && (pending || (booking.status === "confirmed" && !started));
 
   return (
     <li className="space-y-2 py-4">
@@ -81,16 +120,74 @@ async function BookingCard({
         </p>
       ) : null}
 
-      {canAct ? (
-        <div className="flex flex-wrap items-start gap-3 pt-1">
-          {pending ? (
-            <form action={approveBookingAction.bind(null, businessId, booking.id)}>
-              <button type="submit" className="btn btn-primary btn-small">
-                {t("approve")}
+      <div className="flex flex-wrap items-start gap-3 pt-1">
+        {canAnswer && pending ? (
+          <form action={approveBookingAction.bind(null, businessId, booking.id)}>
+            <button type="submit" className="btn btn-primary btn-small">
+              {t("approve")}
+            </button>
+          </form>
+        ) : null}
+
+        {showArrived ? (
+          <form action={markArrivedAction.bind(null, businessId, booking.id)}>
+            <button type="submit" className="btn btn-quiet btn-small">
+              {t("markArrived")}
+            </button>
+          </form>
+        ) : null}
+
+        {showClose ? (
+          <details className="w-full space-y-3 sm:w-auto">
+            <summary className="btn btn-primary btn-small list-none">{t("complete")}</summary>
+            <form
+              action={completeBookingAction.bind(null, businessId, booking.id)}
+              className="max-w-sm space-y-3"
+            >
+              <p className="font-semibold">{t("completeTitle")}</p>
+              <label className="field">
+                <span>{t("amountPaid")}</span>
+                <input
+                  name="amountPaid"
+                  required
+                  inputMode="decimal"
+                  maxLength={12}
+                  defaultValue={birr(booking.totalPrice)}
+                  className="field-input"
+                />
+              </label>
+              <fieldset className="space-y-2">
+                <legend className="text-sm font-semibold">{t("paymentMethod")}</legend>
+                <div className="flex flex-wrap gap-2">
+                  {PAYMENT_METHODS.map((method) => (
+                    <label key={method} className="choice">
+                      <input type="radio" name="paymentMethod" value={method} required />
+                      <span>{t(`methods.${method}`)}</span>
+                    </label>
+                  ))}
+                </div>
+              </fieldset>
+              <button type="submit" className="btn btn-primary">
+                {t("completeSave")}
               </button>
             </form>
-          ) : null}
-          {/* Two taps to cancel: opening this, then confirming. */}
+          </details>
+        ) : null}
+
+        {showClose && booking.status === "confirmed" ? (
+          <details className="space-y-2">
+            <summary className="btn btn-quiet btn-small list-none">{t("noShow")}</summary>
+            <p className="max-w-sm text-sm text-muted">{t("noShowWarning")}</p>
+            <form action={markNoShowAction.bind(null, businessId, booking.id)}>
+              <button type="submit" className="link text-sm text-danger">
+                {t("noShowConfirm")}
+              </button>
+            </form>
+          </details>
+        ) : null}
+
+        {showCancel ? (
+          // Two taps to cancel: opening this, then confirming.
           <details className="space-y-2">
             <summary className="btn btn-quiet btn-small list-none">
               {pending ? t("decline") : t("cancel")}
@@ -102,8 +199,8 @@ async function BookingCard({
               </button>
             </form>
           </details>
-        </div>
-      ) : null}
+        ) : null}
+      </div>
     </li>
   );
 }
@@ -119,16 +216,38 @@ async function Bookings({
   const { scope } = await currentScope(businessId);
   const t = await getTranslations("bookings");
   const business = await scope.business();
+  const { timeZone } = business;
   const now = new Date();
-  const startOfToday = zonedTimeToUtc(localDateOf(now, business.timeZone), 0, business.timeZone);
+  const today = localDateOf(now, timeZone);
+  const startOfToday = zonedTimeToUtc(today, 0, timeZone);
+  const startOfTomorrow = zonedTimeToUtc(addDays(today, 1), 0, timeZone);
 
-  const all = await listUpcomingBookings(scope, startOfToday, now);
+  const all = await listUpcomingBookings(
+    scope,
+    zonedTimeToUtc(addDays(today, -UNFINISHED_DAYS), 0, timeZone),
+    now,
+  );
   const pending = all.filter((booking) => booking.status === "pending_approval");
-  const upcoming = all.filter((booking) => booking.status !== "pending_approval");
+  const visits = all.filter((booking) => booking.status !== "pending_approval");
+  const unfinished = visits.filter((booking) => booking.startsAt < startOfToday);
+  const todays = visits.filter(
+    (booking) => booking.startsAt >= startOfToday && booking.startsAt < startOfTomorrow,
+  );
+  const later = visits.filter((booking) => booking.startsAt >= startOfTomorrow);
+
   const ownOnly = grantFor(scope.actor.role, "bookings.view") === "own";
-  const canAct = (booking: StaffBooking) =>
-    scope.can("bookings.create", { professionalUserId: booking.professionalUserId });
   const shownNotice = NOTICES.find((value) => value === notice);
+  const card = (booking: StaffBooking) => (
+    <BookingCard
+      key={booking.id}
+      booking={booking}
+      businessId={businessId}
+      timeZone={timeZone}
+      now={now}
+      canAnswer={scope.can("bookings.create", { professionalUserId: booking.professionalUserId })}
+      canClose={scope.can("bookings.complete", { professionalUserId: booking.professionalUserId })}
+    />
+  );
 
   return (
     <div className="space-y-8">
@@ -151,36 +270,33 @@ async function Bookings({
             <section className="space-y-2">
               <h2 className="title-sm">{t("pendingTitle", { count: pending.length })}</h2>
               <p className="text-sm text-muted">{t("pendingHint")}</p>
-              <ul className="divide-y divide-line border-y border-line">
-                {pending.map((booking) => (
-                  <BookingCard
-                    key={booking.id}
-                    booking={booking}
-                    businessId={businessId}
-                    timeZone={business.timeZone}
-                    canAct={canAct(booking)}
-                  />
-                ))}
-              </ul>
+              <ul className="divide-y divide-line border-y border-line">{pending.map(card)}</ul>
+            </section>
+          ) : null}
+
+          {unfinished.length > 0 ? (
+            <section className="space-y-2">
+              <h2 className="title-sm">{t("unfinishedTitle", { count: unfinished.length })}</h2>
+              <p className="text-sm text-muted">{t("unfinishedHint")}</p>
+              <ul className="divide-y divide-line border-y border-line">{unfinished.map(card)}</ul>
             </section>
           ) : null}
 
           <section className="space-y-2">
+            <h2 className="title-sm">{t("todayTitle")}</h2>
+            {todays.length === 0 ? (
+              <p className="text-sm text-muted">{t("todayEmpty")}</p>
+            ) : (
+              <ul className="divide-y divide-line border-y border-line">{todays.map(card)}</ul>
+            )}
+          </section>
+
+          <section className="space-y-2">
             <h2 className="title-sm">{t("upcomingTitle")}</h2>
-            {upcoming.length === 0 ? (
+            {later.length === 0 ? (
               <p className="text-sm text-muted">{t("emptyUpcoming")}</p>
             ) : (
-              <ul className="divide-y divide-line border-y border-line">
-                {upcoming.map((booking) => (
-                  <BookingCard
-                    key={booking.id}
-                    booking={booking}
-                    businessId={businessId}
-                    timeZone={business.timeZone}
-                    canAct={canAct(booking)}
-                  />
-                ))}
-              </ul>
+              <ul className="divide-y divide-line border-y border-line">{later.map(card)}</ul>
             )}
           </section>
         </>

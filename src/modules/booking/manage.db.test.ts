@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm";
 import { describe, expect, it } from "vitest";
 import { db } from "@/db/client";
-import { activityLog, bookings, businesses, memberships, users } from "@/db/schema";
+import { activityLog, bookings, businesses, customerRecords, memberships, users } from "@/db/schema";
 import { forBusiness, type BusinessScope } from "@/db/scope";
 import { formatTime, zonedTimeToUtc } from "@/lib/time";
 import { setWeeklyHours } from "@/modules/availability/hours";
@@ -19,7 +19,10 @@ import {
 import {
   approveBooking,
   cancelBookingByBusiness,
+  completeBooking,
   listUpcomingBookings,
+  markArrived,
+  markNoShow,
   setApprovalMode,
 } from "./manage";
 
@@ -253,6 +256,96 @@ describe("cancelling a confirmed visit", () => {
     expect(await openTimes(context, hana.membershipId)).toContain("9:00 AM");
     const logged = await db.select().from(activityLog).where(eq(activityLog.entityId, booking.id));
     expect(logged.map((entry) => entry.action)).toContain("booking.cancelled_by_business");
+  });
+});
+
+describe("closing a visit (F23, D59)", () => {
+  /** A confirmed 9:00 AM Tuesday visit with Hana. */
+  async function confirmedVisit() {
+    const salon = await seedSalon();
+    const booking = await book(salon.context, 540, salon.hana.membershipId);
+    await approveBooking(salon.scope, booking.id, now);
+    const [row] = await db.select().from(bookings).where(eq(bookings.id, booking.id));
+    return { ...salon, booking, recordId: row!.customerRecordId! };
+  }
+  const during = tuesdayAt(560);
+  const record = async (id: string) =>
+    (await db.select().from(customerRecords).where(eq(customerRecords.id, id)))[0]!;
+
+  it("marks arrival on the day, not a day early", async () => {
+    const { scope, booking } = await confirmedVisit();
+    expect(await markArrived(scope, booking.id, now)).toEqual({ ok: false, error: "not_started" });
+    expect(await markArrived(scope, booking.id, tuesdayAt(520))).toEqual({ ok: true });
+    expect((await getGuestBooking(booking.token, tuesdayAt(520)))?.status).toBe("arrived");
+    expect(await markArrived(scope, booking.id, during)).toEqual({ ok: false, error: "wrong_status" });
+  });
+
+  it("completes with the amount and method, and adds the visit to her record", async () => {
+    const { scope, booking, recordId } = await confirmedVisit();
+    const pay = { amountPaid: 40_000, method: "telebirr" };
+
+    expect(await completeBooking(scope, booking.id, pay, now)).toEqual({
+      ok: false,
+      error: "not_started",
+    });
+    expect(await completeBooking(scope, booking.id, { ...pay, method: "card" }, during)).toEqual({
+      ok: false,
+      error: "method_invalid",
+    });
+    expect(await completeBooking(scope, booking.id, { ...pay, amountPaid: -1 }, during)).toEqual({
+      ok: false,
+      error: "amount_invalid",
+    });
+
+    expect(await completeBooking(scope, booking.id, pay, during)).toEqual({ ok: true });
+    const [row] = await db.select().from(bookings).where(eq(bookings.id, booking.id));
+    expect(row).toMatchObject({
+      status: "completed",
+      amountPaid: 40_000,
+      paymentMethod: "telebirr",
+      completedByUserId: scope.actor.userId,
+    });
+    expect(await record(recordId)).toMatchObject({ visitCount: 1, totalSpent: 40_000 });
+    expect((await record(recordId)).lastVisitAt).toEqual(tuesdayAt(540));
+    // Closed visits leave the list, and cannot be closed twice.
+    expect(await list(scope, during)).toEqual([]);
+    expect(await completeBooking(scope, booking.id, pay, during)).toEqual({
+      ok: false,
+      error: "wrong_status",
+    });
+  });
+
+  it("records a no-show on her record", async () => {
+    const { scope, booking, recordId } = await confirmedVisit();
+    expect(await markNoShow(scope, booking.id, now)).toEqual({ ok: false, error: "not_started" });
+    expect(await markNoShow(scope, booking.id, during)).toEqual({ ok: true });
+    expect(await record(recordId)).toMatchObject({ noShowCount: 1, visitCount: 0 });
+    expect((await getGuestBooking(booking.token, during))?.status).toBe("no_show");
+    expect(await completeBooking(scope, booking.id, { amountPaid: 0, method: "cash" }, during)).toEqual({
+      ok: false,
+      error: "wrong_status",
+    });
+  });
+
+  it("keeps an unclosed past visit on the list until someone closes it", async () => {
+    const { scope, booking } = await confirmedVisit();
+    const nextWeek = tuesdayAt(540 + 7 * 24 * 60);
+    expect((await list(scope, nextWeek)).map((row) => row.id)).toEqual([booking.id]);
+  });
+
+  it("lets a stylist close her own visits only, and nobody close another business's", async () => {
+    const { booking, hanaScope, meronScope } = await confirmedVisit();
+    const other = await seedSalon();
+    const pay = { amountPaid: 35_000, method: "cash" };
+    expect(await completeBooking(meronScope, booking.id, pay, during)).toEqual({
+      ok: false,
+      error: "forbidden",
+    });
+    expect(await markNoShow(other.scope, booking.id, during)).toEqual({
+      ok: false,
+      error: "not_found",
+    });
+    expect(await completeBooking(hanaScope, booking.id, pay, during)).toEqual({ ok: true });
   });
 });
 
