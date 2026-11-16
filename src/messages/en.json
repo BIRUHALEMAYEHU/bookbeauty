@@ -194,6 +194,7 @@
     "bookingLinkMissing": "This place has no public address yet.",
     "nav": {
       "overview": "Overview",
+      "bookings": "Bookings",
       "services": "Services",
       "hours": "Hours",
       "page": "Public page",
@@ -414,6 +415,41 @@
       "not_found": "That entry no longer exists."
     }
   },
+  "bookings": {
+    "title": "Bookings",
+    "subtitle": "Requests waiting for you, and visits still to come.",
+    "subtitleOwn": "Your requests and your visits still to come.",
+    "pendingTitle": "Waiting for approval ({count})",
+    "pendingHint": "The time is kept for the customer until you answer. Call her first if you wish.",
+    "upcomingTitle": "Coming up",
+    "empty": "No bookings yet. Share your booking link so customers can book.",
+    "emptyUpcoming": "Nothing coming up.",
+    "approve": "Approve",
+    "decline": "Decline",
+    "declineConfirm": "Yes, decline",
+    "cancel": "Cancel booking",
+    "cancelConfirm": "Yes, cancel it",
+    "cancelWarning": "The customer will see this on her booking page. No message is sent yet, so call her.",
+    "with": "With {name}",
+    "withPicked": "With {name} (picked for \"Any available\")",
+    "atClientPlace": "At the customer's place: {address}",
+    "allergies": "Allergies: {text}",
+    "notes": "Note from the customer: {text}",
+    "waiting": "Waiting for approval",
+    "arrived": "Arrived",
+    "modeTitle": "How bookings are accepted",
+    "modeAuto": "Confirm bookings automatically",
+    "modeManual": "I approve each booking",
+    "modeHint": "With approval on, a new booking keeps its time but is only confirmed when you approve it.",
+    "modeSave": "Save",
+    "overviewPending": "{count, plural, one {# booking is} other {# bookings are}} waiting for your approval.",
+    "overviewOpen": "Open bookings",
+    "notices": {
+      "forbidden": "You do not have permission to change that booking.",
+      "not_found": "That booking no longer exists.",
+      "wrong_status": "That booking had already changed. Here is how things stand now."
+    }
+  },
   "activity": {
     "title": "Activity log",
     "subtitle": "Who changed what, and when. Entries cannot be edited or deleted.",
@@ -442,7 +478,11 @@
       "travel_buffer_updated": "Changed travel time",
       "booking_requested": "A customer asked for a booking",
       "booking_confirmed": "A customer booked",
-      "booking_cancelled_by_customer": "A customer cancelled a booking"
+      "booking_cancelled_by_customer": "A customer cancelled a booking",
+      "booking_approved": "Approved a booking",
+      "booking_declined": "Declined a booking request",
+      "booking_cancelled_by_business": "Cancelled a booking",
+      "approval_mode_updated": "Changed how bookings are accepted"
     },
     "changed": "Changed: {fields}",
     "fields": {
@@ -464,7 +504,8 @@
       "shifts": "hours",
       "minNoticeMinutes": "shortest notice",
       "maxAdvanceDays": "how far ahead",
-      "travelBufferMinutes": "travel time"
+      "travelBufferMinutes": "travel time",
+      "approvalMode": "approval"
     }
   },
   "admin": {

@@ -62,6 +62,7 @@ async function DashboardHeader({ params }: { params: Promise<{ businessId: strin
         <NavTabs
           items={[
             { href: `/dashboard/${businessId}`, label: t("nav.overview") },
+            { href: `/dashboard/${businessId}/bookings`, label: t("nav.bookings") },
             { href: `/dashboard/${businessId}/services`, label: t("nav.services") },
             { href: `/dashboard/${businessId}/hours`, label: t("nav.hours") },
             ...(scope.can("settings.manage")

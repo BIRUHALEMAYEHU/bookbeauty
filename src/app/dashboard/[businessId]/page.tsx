@@ -3,6 +3,8 @@ import { Suspense } from "react";
 import { getTranslations } from "next-intl/server";
 import { listHats } from "@/modules/businesses/queries";
 import { siteUrl } from "@/env";
+import { localDateOf, zonedTimeToUtc } from "@/lib/time";
+import { listUpcomingBookings } from "@/modules/booking/manage";
 import { currentScope } from "./current-scope";
 
 async function Overview({ params }: { params: Promise<{ businessId: string }> }) {
@@ -14,6 +16,13 @@ async function Overview({ params }: { params: Promise<{ businessId: string }> })
   const hat = (await listHats(user.id)).find((h) => h.businessId === businessId);
   const bookingLink = hat?.publicPath ? siteUrl(hat.publicPath) : null;
 
+  const tBookings = await getTranslations("bookings");
+  const { timeZone } = await scope.business();
+  const now = new Date();
+  const waiting = (
+    await listUpcomingBookings(scope, zonedTimeToUtc(localDateOf(now, timeZone), 0, timeZone), now)
+  ).filter((booking) => booking.status === "pending_approval").length;
+
   return (
     <div className="space-y-6">
       <div className="space-y-1">
@@ -24,6 +33,15 @@ async function Overview({ params }: { params: Promise<{ businessId: string }> })
           {t("yourRole", { role: tRoles(scope.actor.role) })}
         </p>
       </div>
+
+      {waiting > 0 ? (
+        <p className="rounded-md bg-warning-tint px-3 py-3 text-sm" role="status">
+          {tBookings("overviewPending", { count: waiting })}{" "}
+          <Link href={`/dashboard/${businessId}/bookings`} className="link">
+            {tBookings("overviewOpen")}
+          </Link>
+        </p>
+      ) : null}
 
       <section className="space-y-3 border-y border-line py-5">
         <h2 className="title-sm">{t("bookingLink")}</h2>
