@@ -61,6 +61,38 @@ export const customerRecords = pgTable(
   ],
 );
 
+/**
+ * Notes staff write about a customer (F24): preferences, what was used last
+ * time. Allergies never go here; they live on the record, where everyone
+ * serving her sees them (D43). Private notes (author and owner only) come in
+ * Layer 2; until then every note is shared with the team.
+ * Carries business_id so the scoped data layer guards it.
+ */
+export const staffNotes = pgTable(
+  "staff_notes",
+  {
+    id: uuid("id").primaryKey().default(sql`uuidv7()`),
+    businessId: uuid("business_id")
+      .notNull()
+      .references(() => businesses.id, { onDelete: "cascade" }),
+    customerRecordId: uuid("customer_record_id")
+      .notNull()
+      .references(() => customerRecords.id, { onDelete: "cascade" }),
+    authorUserId: uuid("author_user_id")
+      .notNull()
+      .references(() => users.id),
+    body: text("body").notNull(),
+    isPrivate: boolean("is_private").notNull().default(false),
+    createdAt: timestamp("created_at", { withTimezone: true, mode: "date" })
+      .notNull()
+      .default(sql`now()`),
+  },
+  (table) => [
+    index("staff_notes_customer_record_id_idx").on(table.customerRecordId),
+    index("staff_notes_business_id_idx").on(table.businessId),
+  ],
+);
+
 export const bookingStatusEnum = pgEnum("booking_status", [
   // The slot is reserved while the customer fills in the form. Never shown.
   "held",
@@ -204,5 +236,6 @@ export const appointments = pgTable(
 );
 
 export type CustomerRecord = typeof customerRecords.$inferSelect;
+export type StaffNote = typeof staffNotes.$inferSelect;
 export type Booking = typeof bookings.$inferSelect;
 export type Appointment = typeof appointments.$inferSelect;

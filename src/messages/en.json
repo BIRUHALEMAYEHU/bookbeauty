@@ -195,6 +195,7 @@
     "nav": {
       "overview": "Overview",
       "bookings": "Bookings",
+      "customers": "Customers",
       "services": "Services",
       "hours": "Hours",
       "page": "Public page",
@@ -472,6 +473,68 @@
     "noShowConfirm": "Yes, she didn't come",
     "noShowWarning": "This is recorded on her customer record at this business."
   },
+  "customers": {
+    "title": "Customers",
+    "subtitle": "Everyone who has booked with you. Records are made by bookings.",
+    "subtitleOwn": "The customers you have served.",
+    "search": "Search by name or phone",
+    "searchButton": "Search",
+    "clear": "Clear",
+    "empty": "No customers yet. They appear here after their first booking.",
+    "emptyOwn": "No customers yet. They appear here once you have served them.",
+    "noMatch": "No customer matches \"{query}\".",
+    "count": "{count, plural, one {# customer} other {# customers}}",
+    "visits": "{count, plural, =0 {No visits yet} one {# visit} other {# visits}}",
+    "lastVisit": "Last visit {date}",
+    "spent": "{amount} spent",
+    "noShows": "{count, plural, one {# no-show} other {# no-shows}}",
+    "cancellations": "{count, plural, one {# cancellation} other {# cancellations}}",
+    "allergyFlag": "Allergies",
+    "back": "All customers",
+    "allergies": "Allergies and sensitivities",
+    "allergiesNone": "None recorded.",
+    "allergiesHint": "Everyone who serves her sees this.",
+    "contactTitle": "Contact details",
+    "name": "Name",
+    "phone": "Mobile number",
+    "email": "Email (optional)",
+    "dateOfBirth": "Date of birth (optional)",
+    "saveDetails": "Save details",
+    "editDetails": "Edit details",
+    "historyTitle": "Visits",
+    "historyEmpty": "No visits yet.",
+    "bookedAs": "Booked as {name}",
+    "paid": "Paid {amount} ({method})",
+    "notesTitle": "Notes for the team",
+    "notesHint": "Preferences, what was used last time. Everyone on the team who can see this customer reads these.",
+    "notesEmpty": "No notes yet.",
+    "notePlaceholder": "For example: prefers a gentle wash, uses colour 6.1",
+    "addNote": "Add note",
+    "deleteNote": "Delete",
+    "noteBy": "{name}, {date}",
+    "splitTitle": "Not the same person?",
+    "splitHint": "If two people share this phone number, their bookings were joined into one record. Tick the bookings that belong to someone else and give her name; they move to a new record.",
+    "splitName": "Her name",
+    "splitButton": "Move to a new record",
+    "status": {
+      "pending_approval": "Waiting for approval",
+      "confirmed": "Booked",
+      "arrived": "Arrived",
+      "completed": "Completed",
+      "cancelled": "Cancelled",
+      "cancelledByCustomer": "Cancelled by the customer",
+      "no_show": "Didn't come"
+    },
+    "notices": {
+      "saved": "Saved.",
+      "split": "Done. This is the new record; the moved bookings and their totals are here now.",
+      "forbidden": "You do not have permission to do that.",
+      "not_found": "That no longer exists.",
+      "invalid_input": "Check the form and try again.",
+      "phone_invalid": "Enter an Ethiopian mobile number, for example 0911 23 45 67.",
+      "nothing_to_split": "Tick at least one booking, but not all of them, to move."
+    }
+  },
   "activity": {
     "title": "Activity log",
     "subtitle": "Who changed what, and when. Entries cannot be edited or deleted.",
@@ -507,7 +570,9 @@
       "approval_mode_updated": "Changed how bookings are accepted",
       "booking_arrived": "Marked a customer as arrived",
       "booking_completed": "Completed a visit",
-      "booking_no_show": "Marked a customer as not coming"
+      "booking_no_show": "Marked a customer as not coming",
+      "customer_updated": "Changed a customer's details",
+      "customer_split": "Split a customer record"
     },
     "changed": "Changed: {fields}",
     "fields": {
@@ -532,7 +597,10 @@
       "travelBufferMinutes": "travel time",
       "approvalMode": "approval",
       "amountPaid": "amount paid",
-      "paymentMethod": "payment method"
+      "paymentMethod": "payment method",
+      "dateOfBirth": "date of birth",
+      "allergies": "allergies",
+      "email": "email"
     }
   },
   "admin": {

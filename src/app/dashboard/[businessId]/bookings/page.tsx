@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Suspense } from "react";
 import { getTranslations } from "next-intl/server";
 import { formatMoney } from "@/lib/money";
@@ -45,8 +46,11 @@ async function BookingCard({
   now,
   canAnswer,
   canClose,
+  canOpenRecord,
 }: {
   booking: StaffBooking;
+  /** May open the customer's record (not a stylist before she has served her). */
+  canOpenRecord: boolean;
   businessId: string;
   timeZone: string;
   now: Date;
@@ -87,7 +91,13 @@ async function BookingCard({
         ) : null}
       </p>
       <p>
-        {booking.customerName}
+        {canOpenRecord && booking.customerRecordId ? (
+          <Link href={`/dashboard/${businessId}/customers/${booking.customerRecordId}`} className="link">
+            {booking.customerName}
+          </Link>
+        ) : (
+          booking.customerName
+        )}
         {booking.customerPhone ? (
           <>
             {" "}
@@ -246,6 +256,7 @@ async function Bookings({
       now={now}
       canAnswer={scope.can("bookings.create", { professionalUserId: booking.professionalUserId })}
       canClose={scope.can("bookings.complete", { professionalUserId: booking.professionalUserId })}
+      canOpenRecord={!ownOnly && scope.can("customers.view")}
     />
   );
 

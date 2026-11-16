@@ -28,6 +28,7 @@ export type StaffBooking = {
   professionalName: string | null;
   professionalUserId: string | null;
   assignment: Appointment["assignment"];
+  customerRecordId: string | null;
   /** The name and phone typed when booking. */
   customerName: string | null;
   customerPhone: string | null;
@@ -149,6 +150,7 @@ export async function listUpcomingBookings(
             : null,
           professionalUserId: appointment.professionalUserId,
           assignment: appointment.assignment,
+          customerRecordId: booking.customerRecordId,
           customerName: booking.customerName,
           customerPhone: booking.customerPhone,
           customerEmail: booking.customerEmail,
