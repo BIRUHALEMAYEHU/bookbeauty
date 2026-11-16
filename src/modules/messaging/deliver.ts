@@ -12,7 +12,10 @@ import {
   type Message,
 } from "@/db/schema";
 import { sendEmail } from "@/integrations/email";
+import { sendTelegramMessage } from "@/integrations/telegram";
 import { BUSINESS_KINDS, composeEmail, type BookingFacts } from "./compose";
+import { customerTarget, staffTargets } from "./recipients";
+import { markChatBlocked } from "./telegram";
 
 /**
  * Sends queued messages that are due (technical-plan Section 8). Run by the
@@ -31,7 +34,7 @@ function retryDelayMs(attempts: number) {
 }
 
 /** Takes up to BATCH due messages, marking them as being sent so no other worker takes them. */
-async function claimDue(now: Date): Promise<Message[]> {
+async function claimDue(now: Date, businessId?: string): Promise<Message[]> {
   return db
     .update(messages)
     .set({ status: "sending", attempts: sql`${messages.attempts} + 1`, updatedAt: now })
@@ -41,7 +44,13 @@ async function claimDue(now: Date): Promise<Message[]> {
         db
           .select({ id: messages.id })
           .from(messages)
-          .where(and(eq(messages.status, "queued"), lte(messages.scheduledFor, now)))
+          .where(
+            and(
+              eq(messages.status, "queued"),
+              lte(messages.scheduledFor, now),
+              businessId ? eq(messages.businessId, businessId) : undefined,
+            ),
+          )
           .orderBy(asc(messages.scheduledFor))
           .limit(BATCH)
           .for("update", { skipLocked: true }),
@@ -116,6 +125,34 @@ async function finish(id: string, set: Partial<typeof messages.$inferInsert>, no
   await db.update(messages).set({ ...set, updatedAt: now }).where(eq(messages.id, id));
 }
 
+/** Queues the same message by email when Telegram can no longer reach the person. */
+async function fallBackToEmail(message: Message, now: Date) {
+  let recipient: string | null = null;
+  if (BUSINESS_KINDS.includes(message.kind)) {
+    const [person] = message.userId ? await staffTargets([message.userId]) : [];
+    recipient = person?.target.channel === "email" ? person.target.recipient : null;
+  } else if (message.bookingId) {
+    const [booking] = await db
+      .select({ customerRecordId: bookings.customerRecordId, customerEmail: bookings.customerEmail })
+      .from(bookings)
+      .where(eq(bookings.id, message.bookingId));
+    const target = booking ? await customerTarget(booking) : null;
+    recipient = target?.channel === "email" ? target.recipient : null;
+  }
+  if (!recipient) return;
+  await db.insert(messages).values({
+    businessId: message.businessId,
+    bookingId: message.bookingId,
+    customerRecordId: message.customerRecordId,
+    userId: message.userId,
+    kind: message.kind,
+    channel: "email",
+    recipient,
+    linkToken: message.linkToken,
+    scheduledFor: now,
+  });
+}
+
 /** Sends one claimed message, or schedules another try. */
 async function deliverOne(message: Message, now: Date) {
   try {
@@ -124,14 +161,29 @@ async function deliverOne(message: Message, now: Date) {
       await finish(message.id, { status: "cancelled", linkToken: null }, now);
       return;
     }
+    const name = await recipientName(message, facts);
+
+    if (message.channel === "telegram") {
+      const { text } = composeEmail(message.kind, facts, { email: "", name }, message.linkToken, "telegram");
+      const result = await sendTelegramMessage(message.recipient, text);
+      if (!result.ok && result.blocked) {
+        // She blocked the bot: stop using that chat, and pass this message on by email if we can.
+        await markChatBlocked(message.recipient, now);
+        await finish(message.id, { status: "failed", error: result.error, linkToken: null }, now);
+        await fallBackToEmail(message, now);
+        return;
+      }
+      if (!result.ok) throw new Error(result.error);
+      await finish(
+        message.id,
+        { status: "sent", sentAt: now, linkToken: null, error: null, providerMessageId: result.messageId },
+        now,
+      );
+      return;
+    }
     if (message.channel !== "email") throw new Error(`No sender for ${message.channel} yet`);
 
-    const email = composeEmail(
-      message.kind,
-      facts,
-      { email: message.recipient, name: await recipientName(message, facts) },
-      message.linkToken,
-    );
+    const email = composeEmail(message.kind, facts, { email: message.recipient, name }, message.linkToken);
     await sendEmail(email);
     await finish(message.id, { status: "sent", sentAt: now, linkToken: null, error: null }, now);
   } catch (error) {
@@ -151,13 +203,20 @@ async function deliverOne(message: Message, now: Date) {
   }
 }
 
-/** Sends everything that is due. Returns how many messages were handled. */
-export async function deliverDueMessages(now = new Date()): Promise<number> {
+/**
+ * Sends everything that is due. Returns how many messages were handled.
+ * `businessId` limits a run to one business; tests use it so that test
+ * files running side by side, each with its own pretend clock, stay apart.
+ */
+export async function deliverDueMessages(
+  now = new Date(),
+  options: { businessId?: string } = {},
+): Promise<number> {
   await releaseStuck(now);
   let handled = 0;
   // A few rounds at most, so one run cannot go on forever.
   for (let round = 0; round < 10; round++) {
-    const batch = await claimDue(now);
+    const batch = await claimDue(now, options.businessId);
     if (batch.length === 0) break;
     for (const message of batch) await deliverOne(message, now);
     handled += batch.length;

@@ -99,6 +99,13 @@
       "when": 1794864155116,
       "tag": "0013_messages",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1794866868834,
+      "tag": "0014_telegram",
+      "breakpoints": true
     }
   ]
 }

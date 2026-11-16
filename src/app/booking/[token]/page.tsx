@@ -8,7 +8,9 @@ import { formatMoney } from "@/lib/money";
 import { formatDateTime, formatTime } from "@/lib/time";
 import { turnstileSiteKey } from "@/modules/abuse/turnstile";
 import { getGuestBooking, type GuestBooking } from "@/modules/booking/engine";
-import { cancelBookingAction } from "@/modules/booking/guest-actions";
+import { telegramMessagesEnabled } from "@/env";
+import { cancelBookingAction, linkTelegramAction } from "@/modules/booking/guest-actions";
+import { telegramLinkedForBooking } from "@/modules/messaging/telegram";
 import { DetailsForm } from "./details-form";
 
 // A private page that changes as the booking does.
@@ -118,6 +120,20 @@ export default async function BookingPage({
             </div>
             <Summary booking={booking} />
             <p className="text-sm text-muted">{t("keepLink")}</p>
+            {telegramMessagesEnabled() ? (
+              (await telegramLinkedForBooking(booking.id)) ? (
+                <p className="rounded-md bg-primary-tint px-3 py-2 text-sm text-primary-dark" role="status">
+                  {t("telegramLinked")}
+                </p>
+              ) : (
+                <form action={linkTelegramAction.bind(null, token)} className="space-y-2 border-y border-line py-4">
+                  <p className="text-sm">{t("telegramHint")}</p>
+                  <button type="submit" className="btn btn-primary">
+                    {t("telegramButton")}
+                  </button>
+                </form>
+              )
+            ) : null}
             {booking.canCancel ? (
               <form action={cancelBookingAction.bind(null, token)} className="space-y-2">
                 <button type="submit" className="btn btn-quiet">

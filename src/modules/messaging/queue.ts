@@ -1,15 +1,18 @@
 import "server-only";
-import { and, asc, eq, inArray, isNotNull } from "drizzle-orm";
+import { and, asc, eq } from "drizzle-orm";
 import { db, type DbExecutor } from "@/db/client";
-import { appointments, bookings, businesses, messages, users, type MessageKind } from "@/db/schema";
+import { appointments, bookings, businesses, messages, type MessageKind } from "@/db/schema";
+import { customerTarget, staffTargets } from "./recipients";
 
 /**
  * Writing messages about bookings (F26). This is the only place that queues
  * them (technical-plan Section 8): a row in `messages` per recipient, which
  * the delivery job sends when it is due. Who gets what:
  *
- * - The customer, by email if she gave one (D90; Telegram and SMS come later).
- * - The professional doing the visit and the owner, by their verified email.
+ * - The customer: on Telegram if she linked it, else by email if she gave
+ *   one (D90; SMS comes with F27).
+ * - The professional doing the visit and the owner: on Telegram if they log
+ *   in with it, else by verified email.
  *
  * Platform code: it runs for guests (no scope) and reads people's emails.
  */
@@ -48,16 +51,6 @@ async function loadBooking(bookingId: string, executor: DbExecutor) {
     .orderBy(asc(appointments.startsAt))
     .limit(1);
   return row ?? null;
-}
-
-/** The professional doing the visit and the owner, each once, by verified email. */
-async function staffRecipients(userIds: (string | null)[], executor: DbExecutor) {
-  const ids = [...new Set(userIds.filter((id): id is string => Boolean(id)))];
-  if (ids.length === 0) return [];
-  return executor
-    .select({ id: users.id, email: users.email })
-    .from(users)
-    .where(and(inArray(users.id, ids), isNotNull(users.email), isNotNull(users.emailVerifiedAt)));
 }
 
 /** Stops reminders still waiting for a booking that will no longer happen. */
@@ -104,10 +97,9 @@ export async function queueBookingMessages(
     scheduledFor: now,
   };
   const rows: Row[] = [];
+  const customer = await customerTarget(booking, executor);
   const toCustomer = (kind: MessageKind, extra: Partial<Row> = {}) => {
-    if (booking.customerEmail) {
-      rows.push({ ...base, kind, channel: "email", recipient: booking.customerEmail, ...extra });
-    }
+    if (customer) rows.push({ ...base, kind, ...customer, ...extra });
   };
   const reminder = () => {
     const at = new Date(startsAt.getTime() - REMINDER_BEFORE_MS);
@@ -129,14 +121,13 @@ export async function queueBookingMessages(
   }
 
   if (event === "booked" || event === "cancelled_by_customer") {
-    const staff = await staffRecipients([found.professionalUserId, found.ownerUserId], executor);
-    for (const person of staff) {
+    const staff = await staffTargets([found.professionalUserId, found.ownerUserId], executor);
+    for (const { userId, target } of staff) {
       rows.push({
         ...base,
         kind: event === "booked" ? "new_booking_notice" : "booking_cancelled_notice",
-        channel: "email",
-        recipient: person.email!,
-        userId: person.id,
+        ...target,
+        userId,
       });
     }
   }
@@ -150,4 +141,36 @@ export async function queueBookingMessages(
     kick?.();
   }
   return rows.length;
+}
+
+/**
+ * After she links Telegram: her waiting reminders move there, and bookings
+ * that had none (she gave no email) get one.
+ */
+export async function requeueRemindersForRecord(
+  customerRecordId: string,
+  now: Date,
+  executor: DbExecutor = db,
+): Promise<void> {
+  const upcoming = await executor
+    .select({ booking: bookings, startsAt: appointments.startsAt })
+    .from(bookings)
+    .innerJoin(appointments, eq(appointments.bookingId, bookings.id))
+    .where(and(eq(bookings.customerRecordId, customerRecordId), eq(bookings.status, "confirmed")));
+
+  for (const { booking, startsAt } of upcoming) {
+    const at = new Date(startsAt.getTime() - REMINDER_BEFORE_MS);
+    if (at <= now) continue;
+    const target = await customerTarget(booking, executor);
+    if (!target) continue;
+    await cancelPendingReminders(booking.id, executor);
+    await executor.insert(messages).values({
+      businessId: booking.businessId,
+      bookingId: booking.id,
+      customerRecordId,
+      kind: "booking_reminder",
+      ...target,
+      scheduledFor: at,
+    });
+  }
 }

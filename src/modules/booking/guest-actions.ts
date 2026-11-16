@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { normalisePhone } from "@/lib/phone";
 import { consumeRateLimit, RATE_LIMITS } from "@/modules/abuse/rate-limit";
 import { TURNSTILE_FIELD, verifyTurnstileToken } from "@/modules/abuse/turnstile";
+import { createTelegramLink } from "@/modules/messaging/telegram";
 import {
   cancelByGuest,
   getGuestBooking,
@@ -101,6 +102,12 @@ export async function submitDetailsAction(
   if (!result.ok) return { error: result.error, values };
   // The same link now shows her booking.
   redirect(`/booking/${token}`);
+}
+
+/** Opens the bot with a one-time code, so her reminders come on Telegram (D89). */
+export async function linkTelegramAction(token: string) {
+  const url = await createTelegramLink(token);
+  redirect(url ?? `/booking/${token}`);
 }
 
 /** She cancels her booking, or lets go of a time she was holding. */

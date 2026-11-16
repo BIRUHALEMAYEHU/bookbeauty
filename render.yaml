@@ -61,3 +61,6 @@ services:
         sync: false
       - key: TELEGRAM_BOT_USERNAME
         sync: false
+      # Turns on customer reminders by Telegram; Render makes a random value.
+      - key: TELEGRAM_WEBHOOK_SECRET
+        generateValue: true

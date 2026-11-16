@@ -59,6 +59,8 @@ const APP_PATHS = [
   "/dashboard",
   "/account",
   "/api/auth",
+  // Telegram does not follow redirects, so its webhook must answer on the app address it was given.
+  "/api/telegram",
 ];
 
 /** The only app pages the admin address also serves: its own login. */

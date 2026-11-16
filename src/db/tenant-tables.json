@@ -17,7 +17,9 @@
     "staffNotes",
     "bookings",
     "appointments",
-    "messages"
+    "messages",
+    "telegramLinks",
+    "telegramLinkCodes"
   ],
   "alsoGuarded": {
     "businesses": "The business row itself. Read and change it through scope.business() and scope.updateBusiness().",

@@ -112,12 +112,14 @@ export function composeEmail(
   facts: BookingFacts,
   to: { email: string; name: string },
   linkToken: string | null,
+  /** The same words go to Telegram as plain text, with a signature that fits a chat. */
+  channel: "email" | "telegram" = "email",
 ): EmailMessage {
   const forBusiness = BUSINESS_KINDS.includes(kind);
   const body = forBusiness ? businessBody(kind, facts) : customerBody(kind, facts, linkToken);
   const greeting = t("greeting", { name: to.name });
   const visit = visitLines(facts, forBusiness);
-  const signature = t("signature");
+  const signature = channel === "telegram" ? t("signatureTelegram") : t("signature");
 
   const text = [
     greeting,

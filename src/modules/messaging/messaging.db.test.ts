@@ -119,7 +119,7 @@ describe("messages about a booking (F26)", () => {
     );
     expect(rows.find((row) => row.kind === "booking_reminder")?.scheduledFor).toEqual(dayBefore);
 
-    await deliverDueMessages(now);
+    await deliverDueMessages(now, { businessId: context.business.id });
     expect(await kinds(booking.id)).toEqual([
       "booking_confirmation:sent",
       "booking_reminder:queued",
@@ -135,7 +135,7 @@ describe("messages about a booking (F26)", () => {
     expect((await rowsFor(booking.id)).every((row) => row.linkToken === null)).toBe(true);
     expect(sentTo(owner.email!)[0]?.subject).toBe("New booking: Tigist");
 
-    await deliverDueMessages(dayBefore);
+    await deliverDueMessages(dayBefore, { businessId: context.business.id });
     expect(await kinds(booking.id)).toContain("booking_reminder:sent");
     const reminder = sentTo(email).find((message) => message.subject.startsWith("Reminder"));
     expect(reminder?.text).not.toContain("/booking/");
@@ -205,7 +205,7 @@ describe("messages about a booking (F26)", () => {
       .set({ status: "queued" })
       .where(and(eq(messages.bookingId, booking.id), eq(messages.kind, "booking_reminder")));
 
-    await deliverDueMessages(dayBefore);
+    await deliverDueMessages(dayBefore, { businessId: context.business.id });
     expect(await kinds(booking.id)).toContain("booking_reminder:cancelled");
   });
 
@@ -220,7 +220,7 @@ describe("messages about a booking (F26)", () => {
     try {
       let at = now;
       for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
-        await deliverDueMessages(at);
+        await deliverDueMessages(at, { businessId: context.business.id });
         const row = await confirmation();
         expect(row.attempts).toBe(attempt);
         if (attempt < MAX_ATTEMPTS) {

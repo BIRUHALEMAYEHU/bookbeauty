@@ -18,6 +18,11 @@ const schema = z.object({
   GOOGLE_CLIENT_SECRET: z.string().optional(),
   TELEGRAM_BOT_TOKEN: z.string().optional(),
   TELEGRAM_BOT_USERNAME: z.string().optional().transform(cleanTelegramUsername),
+  /** Sent back by Telegram with every update, so nobody else can post to the bot's address. */
+  TELEGRAM_WEBHOOK_SECRET: z.preprocess(
+    (value) => (value === "" ? undefined : value),
+    z.string().regex(/^[A-Za-z0-9_-]{16,256}$/).optional(),
+  ),
   /** Comma-separated emails that are platform administrators once verified. */
   PLATFORM_ADMIN_EMAILS: z.string().optional(),
   RESEND_API_KEY: z.string().optional(),
@@ -43,4 +48,9 @@ export function googleEnabled() {
 
 export function telegramEnabled() {
   return Boolean(env.TELEGRAM_BOT_TOKEN && env.TELEGRAM_BOT_USERNAME);
+}
+
+/** Customers can link Telegram only when the bot can also receive their "Start". */
+export function telegramMessagesEnabled() {
+  return telegramEnabled() && Boolean(env.TELEGRAM_WEBHOOK_SECRET);
 }

@@ -280,7 +280,10 @@
       "not_found": "This booking link is not valid.",
       "rate_limited": "Too many bookings from this phone or connection. Please call the business instead.",
       "bot_check_failed": "We could not confirm you are a person. Wait for the check to finish, then try again."
-    }
+    },
+    "telegramHint": "Get your reminder and any changes to this booking on Telegram.",
+    "telegramButton": "Get reminders on Telegram",
+    "telegramLinked": "Your reminder and any changes will come on Telegram."
   },
   "pageSettings": {
     "title": "Your public page",
@@ -738,6 +741,12 @@
     "customerCancelled": {
       "subject": "Cancelled by the customer: {customer}",
       "intro": "{customer} ({phone}) cancelled this booking. The time is free again."
+    },
+    "signatureTelegram": "Sent by Book on behalf of the business.",
+    "telegram": {
+      "hello": "Hello. This bot sends booking reminders. To get yours, open your booking page and tap \"Get reminders on Telegram\".",
+      "linked": "Done. Your reminders and any changes to your bookings at {business} will come here.",
+      "expired": "This link has expired or was already used. Open your booking page and tap \"Get reminders on Telegram\" again."
     }
   }
 }
