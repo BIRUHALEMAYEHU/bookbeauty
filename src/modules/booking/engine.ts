@@ -303,12 +303,26 @@ export function getOpenSlots(context: BookingContext, query: SlotQuery): Promise
   return slotsFor(context, { ...query, now: query.now ?? new Date() });
 }
 
-/** Marks run-out holds as expired and frees their time. Safe to call at any moment. */
-export async function expireStaleHolds(now = new Date(), executor: DbExecutor = db) {
+/**
+ * Marks one business's run-out holds as expired and frees their time. Safe
+ * to call at any moment. Tidying only: a run-out hold already stops blocking
+ * times the moment it runs out, at every business (see `stillBlocking`).
+ */
+export async function expireStaleHolds(
+  businessId: string,
+  now = new Date(),
+  executor: DbExecutor = db,
+) {
   const expired = await executor
     .update(bookings)
     .set({ status: "expired", updatedAt: now })
-    .where(and(eq(bookings.status, "held"), lt(bookings.holdExpiresAt, now)))
+    .where(
+      and(
+        eq(bookings.businessId, businessId),
+        eq(bookings.status, "held"),
+        lt(bookings.holdExpiresAt, now),
+      ),
+    )
     .returning({ id: bookings.id });
   if (expired.length === 0) return 0;
   await executor
@@ -336,12 +350,18 @@ export type HoldResult =
   /** slot_taken: it was free a moment ago; not_available: it never was. */
   | { ok: false; error: "slot_taken" | "not_available" };
 
-/** Postgres reports a broken exclusion constraint with this code. */
+/**
+ * The database refused the appointment because someone else is taking the
+ * same time. 23P01: the rule against double-booking found a finished
+ * booking. 40P01: two customers were inserting the same time at the same
+ * instant, each waiting for the other; the database lets one through and
+ * aborts the other. Both mean "that time was just taken".
+ */
 function isDoubleBooking(error: unknown): boolean {
   let current: unknown = error;
   for (let depth = 0; current && depth < 5; depth++) {
     const candidate = current as { code?: string; cause?: unknown };
-    if (candidate.code === "23P01") return true;
+    if (candidate.code === "23P01" || candidate.code === "40P01") return true;
     current = candidate.cause;
   }
   return false;
@@ -376,7 +396,7 @@ export async function holdSlot(context: BookingContext, input: HoldInput): Promi
   const price = priceFor(context, input.atClientPlace);
   if (price === null) return { ok: false, error: "not_available" };
 
-  await expireStaleHolds(now);
+  await expireStaleHolds(context.business.id, now);
 
   const { timeZone } = context.business;
   const date = localDateOf(input.startsAt, timeZone);

@@ -275,7 +275,7 @@ describe("holds run out", () => {
     expect(next.ok).toBe(true);
     const [old] = await db.select().from(bookings).where(eq(bookings.id, held.bookingId));
     expect(old?.status).toBe("expired");
-    expect(await expireStaleHolds(later)).toBe(0);
+    expect(await expireStaleHolds(context.business.id, later)).toBe(0);
   });
 });
 

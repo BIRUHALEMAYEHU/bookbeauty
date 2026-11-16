@@ -1,6 +1,10 @@
 services:
   db:
     image: postgres:18
+    # A small init process as PID 1 cleans up finished health checks. Without
+    # it Postgres adopts them, and a check that times out on a busy machine
+    # makes Postgres restart and drop every connection mid-test.
+    init: true
     environment:
       POSTGRES_USER: book
       POSTGRES_PASSWORD: book
