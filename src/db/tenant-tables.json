@@ -16,7 +16,8 @@
     "customerRecords",
     "staffNotes",
     "bookings",
-    "appointments"
+    "appointments",
+    "messages"
   ],
   "alsoGuarded": {
     "businesses": "The business row itself. Read and change it through scope.business() and scope.updateBusiness().",
@@ -31,7 +32,8 @@
     "src/modules/businesses/create.ts",
     "src/modules/businesses/queries.ts",
     "src/modules/public/**",
-    "src/modules/booking/engine.ts"
+    "src/modules/booking/engine.ts",
+    "src/modules/messaging/**"
   ],
   "databaseFilesReason": "Accounts, sessions, rate limits, platform admins and plans are not business data. The others are platform files below.",
   "platformFiles": [
@@ -42,7 +44,8 @@
     "src/modules/audit/log.ts",
     "src/modules/public/**",
     "src/modules/platform/**",
-    "src/modules/booking/engine.ts"
+    "src/modules/booking/engine.ts",
+    "src/modules/messaging/**"
   ],
-  "platformFilesReason": "These create businesses, decide who is acting in one, resolve plans, write the activity log, read the published parts of business pages for guests, take bookings from guests (who have no membership, and whose chosen professional may be busy at another business), and run the platform administrator's screens. They run before a scope exists, or for every business, so they read business tables directly. Keep this list short."
+  "platformFilesReason": "These create businesses, decide who is acting in one, resolve plans, write the activity log, read the published parts of business pages for guests, take bookings from guests (who have no membership, and whose chosen professional may be busy at another business), send messages about bookings (to guests with no scope, and from a background job that serves every business), and run the platform administrator's screens. They run before a scope exists, or for every business, so they read business tables directly. Keep this list short."
 }

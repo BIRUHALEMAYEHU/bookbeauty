@@ -22,6 +22,7 @@ import { normalisePhone } from "@/lib/phone";
 import { addDays, isLocalDate, localDateOf, zonedTimeToUtc, type LocalDate } from "@/lib/time";
 import { generateToken, hashToken } from "@/lib/tokens";
 import { logActivity } from "@/modules/audit/log";
+import { queueBookingMessages } from "@/modules/messaging/queue";
 import { openSlots, type Period, type ProfessionalDay } from "@/modules/availability/slots";
 
 /**
@@ -696,6 +697,8 @@ export async function submitBooking(
       },
       tx,
     );
+    // In the same transaction: the booking and its messages are saved together.
+    await queueBookingMessages("booked", booking.id, { linkToken: token, now }, tx);
     return { ok: true, status };
   });
 }
@@ -749,6 +752,7 @@ export async function cancelByGuest(token: string, now = new Date()): Promise<Gu
         },
         tx,
       );
+      await queueBookingMessages("cancelled_by_customer", booking.id, { now }, tx);
     }
     return { ok: true };
   });

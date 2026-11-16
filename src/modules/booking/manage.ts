@@ -11,6 +11,7 @@ import {
 } from "@/db/schema";
 import type { BusinessScope } from "@/db/scope";
 import { grantFor } from "@/modules/identity/permissions";
+import { queueBookingMessages } from "@/modules/messaging/queue";
 
 /**
  * The business's side of bookings (F16, the start of F23): seeing what is
@@ -213,6 +214,9 @@ export async function approveBooking(
       after: { status: "confirmed" },
     });
     return { ok: true };
+  }).then(async (result) => {
+    if (result.ok) await queueBookingMessages("approved", bookingId, { now });
+    return result;
   });
 }
 
@@ -255,6 +259,15 @@ export async function cancelBookingByBusiness(
       after: { status: "cancelled" },
     });
     return { ok: true };
+  }).then(async (result) => {
+    if (result.ok) {
+      await queueBookingMessages(
+        status === "pending_approval" ? "declined" : "cancelled_by_business",
+        bookingId,
+        { now },
+      );
+    }
+    return result;
   });
 }
 

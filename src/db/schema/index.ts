@@ -4,6 +4,7 @@ export * from "./businesses";
 export * from "./catalog";
 export * from "./availability";
 export * from "./booking";
+export * from "./messaging";
 export * from "./audit";
 export * from "./entitlements";
 export * from "./abuse";
