@@ -4,7 +4,9 @@ import { getTranslations } from "next-intl/server";
 import { listHats } from "@/modules/businesses/queries";
 import { siteUrl } from "@/env";
 import { localDateOf, zonedTimeToUtc } from "@/lib/time";
+import { formatMoney } from "@/lib/money";
 import { listUpcomingBookings } from "@/modules/booking/manage";
+import { getIncome, monthOf } from "@/modules/income/income";
 import { currentScope } from "./current-scope";
 
 async function Overview({ params }: { params: Promise<{ businessId: string }> }) {
@@ -22,6 +24,9 @@ async function Overview({ params }: { params: Promise<{ businessId: string }> })
   const waiting = (
     await listUpcomingBookings(scope, zonedTimeToUtc(localDateOf(now, timeZone), 0, timeZone), now)
   ).filter((booking) => booking.status === "pending_approval").length;
+  // Null for those who may not see income (front desk).
+  const income = await getIncome(scope, monthOf(localDateOf(now, timeZone)));
+  const tIncome = await getTranslations("income");
 
   return (
     <div className="space-y-6">
@@ -39,6 +44,18 @@ async function Overview({ params }: { params: Promise<{ businessId: string }> })
           {tBookings("overviewPending", { count: waiting })}{" "}
           <Link href={`/dashboard/${businessId}/bookings`} className="link">
             {tBookings("overviewOpen")}
+          </Link>
+        </p>
+      ) : null}
+
+      {income && income.visits > 0 ? (
+        <p className="text-sm">
+          {tIncome("overview", {
+            amount: formatMoney({ amount: income.total, currency: income.currency }),
+            count: income.visits,
+          })}{" "}
+          <Link href={`/dashboard/${businessId}/income`} className="link">
+            {tIncome("overviewLink")}
           </Link>
         </p>
       ) : null}

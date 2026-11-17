@@ -129,6 +129,12 @@ export function minuteOfDay(instant: Date, timeZone = DEFAULT_TIME_ZONE) {
   return local.getUTCHours() * 60 + local.getUTCMinutes();
 }
 
+/** "November 2026" for "2026-11". Gregorian only (D86). */
+export function formatMonth(month: string) {
+  const [year, m] = month.split("-").map(Number) as [number, number];
+  return formatter("UTC", { month: "long", year: "numeric" }).format(new Date(Date.UTC(year, m - 1, 15)));
+}
+
 /** A calendar day in two short pieces, for a row of day buttons: "Tue" and "27 Oct". */
 export function formatShortDay(date: LocalDate) {
   const { year, month, day } = dateParts(date);

@@ -196,6 +196,7 @@
       "overview": "Overview",
       "bookings": "Bookings",
       "customers": "Customers",
+      "income": "Income",
       "services": "Services",
       "hours": "Hours",
       "page": "Public page",
@@ -537,6 +538,25 @@
       "phone_invalid": "Enter an Ethiopian mobile number, for example 0911 23 45 67.",
       "nothing_to_split": "Tick at least one booking, but not all of them, to move."
     }
+  },
+  "income": {
+    "title": "Income",
+    "subtitle": "What customers paid for completed visits, by the day of the visit.",
+    "subtitleOwn": "What your customers paid for your completed visits, by the day of the visit.",
+    "previous": "Previous month",
+    "next": "Next month",
+    "total": "Paid",
+    "visits": "Completed visits",
+    "average": "Per visit",
+    "byMethod": "By how they paid",
+    "byService": "By service",
+    "byProfessional": "By professional",
+    "visitsTitle": "Visits",
+    "visitCount": "{count, plural, one {# visit} other {# visits}}",
+    "empty": "No completed visits in {month}. Income appears here when visits are completed with the amount paid.",
+    "unassigned": "Not assigned",
+    "overview": "{amount} paid this month from {count, plural, one {# visit} other {# visits}}.",
+    "overviewLink": "See income"
   },
   "activity": {
     "title": "Activity log",
